@@ -10,6 +10,7 @@ import OrdersScreen from './screens/OrdersScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import PaymentScreen from './screens/PaymentScreen';
 import { getToken } from './api/users';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -44,6 +45,7 @@ export default function App() {
             <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
             <Stack.Screen name="Cart" component={CartScreen} />
             <Stack.Screen name="Orders" component={OrdersScreen} />
+            <Stack.Screen name="Payment" component={PaymentScreen} />
             <Stack.Screen name="Profile">
               {props => <ProfileScreen {...props} onLogout={() => setIsLoggedIn(false)} />}
             </Stack.Screen>
