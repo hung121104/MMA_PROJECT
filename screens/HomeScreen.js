@@ -10,6 +10,7 @@ export default function HomeScreen({ navigation }) {
       <Button title="Cart" onPress={() => navigation.navigate('Cart')} />
       <Button title="Orders" onPress={() => navigation.navigate('Orders')} />
       <Button title="Profile" onPress={() => navigation.navigate('Profile')} />
+      <Button title="Payment" onPress={() => navigation.navigate('Payment')} />
     </ScrollView>
   );
 }
