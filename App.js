@@ -11,6 +11,8 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import PaymentScreen from './screens/PaymentScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import { getToken } from './api/users';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -56,6 +58,8 @@ export default function App() {
               {props => <LoginScreen {...props} onLoginSuccess={() => setIsLoggedIn(true)} />}
             </Stack.Screen>
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
           </>
         )}
       </Stack.Navigator>
