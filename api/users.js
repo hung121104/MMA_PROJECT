@@ -12,6 +12,16 @@ export const registerUser = async (userData) => {
   return res.data;
 };
 
+export const requestResetPassword = async (email) => {
+  const res = await axios.post(`${API_URL}/user/request-reset-password`, { email });
+  return res.data;
+};
+
+export const resetPassword = async (email, otp, newPassword) => {
+  const res = await axios.post(`${API_URL}/user/reset-password`, { email, otp, newPassword });
+  return res.data;
+};
+
 export const getProfile = async (token) => {
   const res = await axios.get(`${API_URL}/user/profile`, {
     headers: { Authorization: `Bearer ${token}` },
