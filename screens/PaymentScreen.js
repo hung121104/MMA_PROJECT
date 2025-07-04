@@ -20,11 +20,28 @@ export default function PaymentScreen({ route, navigation }) {
   const [showDebug, setShowDebug] = useState(false);
   
   // Get order data from route params
+  const orderId = route.params?.orderId;
+  const totalAmount = route.params?.totalAmount;
+  const orderDetails = route.params?.orderDetails || null;
+
+  if (!orderId || !totalAmount) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', margin: 24 }}>
+          There is no order that needs to be paid at this time.
+        </Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ backgroundColor: '#0066cc', padding: 12, borderRadius: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   const orderData = {
-    orderId: route.params?.orderId || 'order_123456',
-    totalAmount: route.params?.totalAmount || 2500, // $25.00 in cents
+    orderId,
+    totalAmount,
     currency: 'usd',
-    orderDetails: route.params?.orderDetails || null,
+    orderDetails,
   };
 
   // Handle successful payment
