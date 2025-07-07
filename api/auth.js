@@ -1,6 +1,3 @@
-// This file is now reserved for user-specific (non-auth) API functions.
-// All authentication-related functions have been moved to auth.js.
-
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {API_URL} from '@env';
@@ -55,4 +52,4 @@ export const getToken = async () => {
 
 export const removeToken = async () => {
   await AsyncStorage.removeItem('token');
-}; 
+};

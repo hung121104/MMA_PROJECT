@@ -15,7 +15,7 @@ import {
   useConfirmPayment,
 } from '@stripe/stripe-react-native';
 import axios from 'axios';
-import { getToken } from '../api/users';
+import { getToken } from '../api/auth';
 import { updatePaymentStatus } from '../api/orders';
 
 /**

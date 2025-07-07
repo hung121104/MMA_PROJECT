@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { removeToken } from '../api/users';
+import { removeToken } from '../api/auth';
 
 export default function ProfileScreen({ onLogout }) {
   const handleLogout = async () => {
