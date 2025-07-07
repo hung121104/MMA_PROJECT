@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { getToken } from '../api/users';
+import { getToken } from '../api/auth';
 
 export default function PaymentDebug({ orderId, totalAmount }) {
   const [debugInfo, setDebugInfo] = useState(null);

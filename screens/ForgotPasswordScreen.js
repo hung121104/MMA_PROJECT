@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, Alert, StyleSheet } from 'react-native';
-import { requestResetPassword } from '../api/users';
+import { requestResetPassword } from '../api/auth';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
