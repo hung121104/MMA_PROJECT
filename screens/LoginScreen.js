@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { loginUser, setToken } from '../api/auth';
+import styles from '../styles/LoginScreenStyles';
+import GlobalStyles from '../styles/GlobalStyles';
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -28,7 +30,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Welcome{"\n"}Back!</Text>
+      <Text style={[styles.title, GlobalStyles.textPrimary]}>Welcome{"\n"}Back!</Text>
       {/* Username/Email Input */}
       <View style={styles.inputContainer}>
         <FontAwesome name="user" size={20} color="#888" style={styles.inputIcon} />
@@ -55,7 +57,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        <Text style={GlobalStyles.textError}>Forgot Password?</Text>
       </TouchableOpacity>
       {/* Login Button */}
       <TouchableOpacity
@@ -66,11 +68,11 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.loginButtonText}>Login</Text>
+          <Text style={GlobalStyles.buttonText}>Login</Text>
         )}
       </TouchableOpacity>
       {/* OR Continue with */}
-      <Text style={styles.orText}>- OR Continue with -</Text>
+      <Text style={GlobalStyles.textMuted}>- OR Continue with -</Text>
       <View style={styles.socialContainer}>
         <TouchableOpacity style={styles.socialButton} onPress={() => {}}>
           <FontAwesome name="google" size={24} color="#EA4335" />
@@ -84,93 +86,11 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
       </View>
       {/* Sign Up Link */}
       <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>Create An Account </Text>
+        <Text style={GlobalStyles.textMuted}>Create An Account </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.signupLink}>Sign Up</Text>
+          <Text style={GlobalStyles.textError}>Sign Up</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginTop: 32,
-    marginBottom: 32,
-    lineHeight: 40,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  inputIcon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: '#F43F5E',
-  },
-  loginButton: {
-    backgroundColor: '#F43F5E',
-    borderRadius: 10,
-    paddingVertical: 16,
-    marginBottom: 24,
-  },
-  loginButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  orText: {
-    textAlign: 'center',
-    color: '#6b7280',
-    marginBottom: 16,
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 32,
-  },
-  socialButton: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    padding: 12,
-    marginHorizontal: 8,
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 32,
-  },
-  signupText: {
-    color: '#6b7280',
-  },
-  signupLink: {
-    color: '#F43F5E',
-    fontWeight: 'bold',
-  },
-});
