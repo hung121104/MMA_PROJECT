@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, Alert } from 'react-native';
+import {FontAwesome } from '@expo/vector-icons';
 import { requestResetPassword } from '../api/auth';
+import styles from '../styles/ForgotPasswordScreenStyles';
+import GlobalStyles from '../styles/GlobalStyles';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -29,9 +32,9 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Forgot{"\n"}password?</Text>
+      <Text style={[styles.title, GlobalStyles.textPrimary]}>Forgot{"\n"}password?</Text>
       <View style={styles.inputContainer}>
-        <Image source={require('../assets/icon.png')} style={styles.inputIcon} />
+      <FontAwesome name="envelope" size={20} color="#888"  />
         <TextInput
           style={styles.input}
           placeholder="Enter your email address"
@@ -42,7 +45,7 @@ export default function ForgotPasswordScreen({ navigation }) {
         />
       </View>
       <Text style={styles.infoText}>
-        <Text style={{ color: '#F43F5E' }}>* </Text>
+        <Text style={GlobalStyles.textError}>* </Text>
         We will send you a message to set or reset your new password
       </Text>
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
@@ -50,60 +53,4 @@ export default function ForgotPasswordScreen({ navigation }) {
       </TouchableOpacity>
     </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginTop: 32,
-    marginBottom: 32,
-    lineHeight: 40,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    height: 56,
-  },
-  inputIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 8,
-    tintColor: '#888',
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  infoText: {
-    color: '#6b7280',
-    marginBottom: 32,
-    fontSize: 14,
-  },
-  submitButton: {
-    backgroundColor: '#F43F5E',
-    borderRadius: 10,
-    paddingVertical: 16,
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  submitButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-}); 
+} 
