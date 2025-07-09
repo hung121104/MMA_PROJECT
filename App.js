@@ -24,7 +24,7 @@ import { getToken } from "./api/users";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function MainTabNavigator() {
+function MainTabNavigator({ onLogout }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -52,7 +52,10 @@ function MainTabNavigator() {
       <Tab.Screen name="Wishlist" component={ProductListScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen
+        name="Profile"
+        children={() => <ProfileScreen onLogout={onLogout} />}
+      />
     </Tab.Navigator>
   );
 }
@@ -67,6 +70,10 @@ export default function App() {
     };
     checkToken();
   }, []);
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
 
   if (isLoggedIn === null) {
     return (
@@ -106,7 +113,11 @@ export default function App() {
           >
             {isLoggedIn ? (
               <>
-                <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="MainTabs"
+                  options={{ headerShown: false }}
+                  children={() => <MainTabNavigator onLogout={handleLogout} />}
+                />
                 <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
                 <Stack.Screen name="Payment" component={PaymentScreen} />
               </>
