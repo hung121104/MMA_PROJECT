@@ -14,8 +14,7 @@ import {
   useStripe,
   useConfirmPayment,
 } from '@stripe/stripe-react-native';
-import axios from 'axios';
-import { getToken } from '../api/auth';
+import { createPaymentIntent } from '../api/payments';
 import { updatePaymentStatus } from '../api/orders';
 
 /**
@@ -26,7 +25,6 @@ import { updatePaymentStatus } from '../api/orders';
  * @param {string} currency - The currency code (default: 'usd')
  * @param {function} onPaymentSuccess - Callback function called when payment succeeds
  * @param {function} onPaymentError - Callback function called when payment fails
- * @param {string} apiBaseUrl - Base URL for your backend API (default: 'http://localhost:3000')
  * @param {object} navigation - Navigation object for redirecting after payment
  */
 const PaymentComponent = ({
@@ -35,7 +33,6 @@ const PaymentComponent = ({
   currency = 'usd',
   onPaymentSuccess,
   onPaymentError,
-  apiBaseUrl = 'http://localhost:3000',
   navigation,
 }) => {
   const { confirmPayment } = useConfirmPayment();
@@ -67,29 +64,22 @@ const PaymentComponent = ({
       setError(null);
 
       try {
-        // Get the authentication token
-        const token = await getToken();
-        if (!token) {
-          throw new Error('Authentication token not found. Please login again.');
-        }
+        const response = await createPaymentIntent(orderId, totalAmount, currency);
         
-        const response = await axios.post(`${apiBaseUrl}/order/payments`, {
-          orderId,
-          totalAmount,
-          currency,
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.data && response.data.client_secret) {
-          setClientSecret(response.data.client_secret);
+        if (response && response.client_secret) {
+          setClientSecret(response.client_secret);
         } else {
-          throw new Error(`Invalid response from server. Expected client_secret, got: ${JSON.stringify(response.data)}`);
+          throw new Error(`Invalid response from server. Expected client_secret, got: ${JSON.stringify(response)}`);
         }
       } catch (err) {
+        console.log('Payment Error Details:', {
+          message: err.message,
+          code: err.code,
+          response: err.response?.data,
+          status: err.response?.status,
+          config: err.config
+        });
+        
         if (err.response?.status === 401) {
           setError('Authentication failed. Please login again.');
         } else if (err.response?.data) {
@@ -109,7 +99,7 @@ const PaymentComponent = ({
     };
 
     getClientSecret();
-  }, [orderId, totalAmount, currency, apiBaseUrl, paymentCompleted]);
+  }, [orderId, totalAmount, currency, paymentCompleted]);
 
   // Step 2: Handle payment confirmation
   const handlePayment = async () => {
@@ -152,6 +142,7 @@ const PaymentComponent = ({
         } catch (updateError) {
           // Don't fail the payment if status update fails
           // Payment was successful, just status update failed
+          console.log('Payment status update failed:', updateError);
         }
         
         setError(null);
@@ -168,7 +159,7 @@ const PaymentComponent = ({
               text: 'View Orders',
               onPress: () => {
                 if (navigation) {
-                  navigation.navigate('Orders');
+                  navigation.navigate('MainTabs', { screen: 'Orders' });
                 }
               },
             },

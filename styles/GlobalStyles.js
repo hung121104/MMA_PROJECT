@@ -18,7 +18,7 @@ const GlobalStyles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#F43F5E',
+    backgroundColor: '#2563eb',
     borderRadius: 10,
     paddingVertical: 16,
     marginBottom: 24,
@@ -40,7 +40,7 @@ const GlobalStyles = StyleSheet.create({
     color: '#888',
   },
   textError: {
-    color: '#F43F5E',
+    color: '#2563eb',
   },
   // Text Styles
   title: {
@@ -57,7 +57,7 @@ const GlobalStyles = StyleSheet.create({
     color: '#444',
   },
   errorText: {
-    color: '#F43F5E',
+    color: '#2563eb',
     fontSize: 14,
   },
   // Container/Card
@@ -107,7 +107,19 @@ export const colors = {
   secondary: '#fff',
   card: '#fff',
   border: '#eee',
-  // add any other colors you need
+  primary: '#2563eb',
+  primaryBlue: '#2563eb',
+  textPrimary: '#111',
+  textSecondary: '#333',
+  textMuted: '#888',
+  textError: '#2563eb',
+  success: '#10b981',
+  warning: '#f59e0b',
+  info: '#3b82f6',
+  lightGray: '#f3f4f6',
+  mediumGray: '#6b7280',
+  darkGray: '#374151',
+  // Add any other colors you need
 };
 
 export default GlobalStyles; 
