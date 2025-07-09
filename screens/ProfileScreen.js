@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { removeToken } from '../api/auth';
+import ProfileScreenStyles from '../styles/ProfileScreenStyles';
 
 export default function ProfileScreen({ onLogout, navigation }) {
   const [loggingOut, setLoggingOut] = useState(false);
@@ -19,38 +20,15 @@ export default function ProfileScreen({ onLogout, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profile Screen (Coming Soon)</Text>
+    <View style={ProfileScreenStyles.container}>
+      <Text style={ProfileScreenStyles.title}>Profile Screen (Coming Soon)</Text>
       <TouchableOpacity
-        style={styles.logoutButton}
+        style={ProfileScreenStyles.logoutButton}
         onPress={handleLogout}
         disabled={loggingOut}
       >
-        <Text style={styles.logoutButtonText}>{loggingOut ? 'Logging out...' : 'Log Out'}</Text>
+        <Text style={ProfileScreenStyles.logoutButtonText}>{loggingOut ? 'Logging out...' : 'Log Out'}</Text>
       </TouchableOpacity>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    marginBottom: 32,
-  },
-  logoutButton: {
-    backgroundColor: '#F43F5E',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-}); 
+} 

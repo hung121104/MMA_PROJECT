@@ -14,7 +14,8 @@ import {
   useStripe,
   useConfirmPayment,
 } from '@stripe/stripe-react-native';
-import { createPaymentIntent, updatePaymentStatus } from '../api/payments';
+import { createPaymentIntent } from '../api/payments';
+import { updatePaymentStatus } from '../api/orders';
 
 /**
  * PaymentComponent - A React Native component for processing Stripe payments

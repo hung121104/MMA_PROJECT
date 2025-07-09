@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import PaymentComponent from '../components/PaymentWithStripe';
+import PaymentWithStripeScreenStyles from '../styles/PaymentWithStripeScreenStyles';
 
 export default function PaymentComponentScreen({ navigation, route }) {
   const { orderId, totalAmount, orderDetails } = route.params || {};
@@ -16,7 +17,7 @@ export default function PaymentComponentScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={PaymentWithStripeScreenStyles.container}>
       <PaymentComponent
         orderId={orderId}
         totalAmount={totalAmount}
@@ -26,11 +27,4 @@ export default function PaymentComponentScreen({ navigation, route }) {
       />
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-}); 
+} 

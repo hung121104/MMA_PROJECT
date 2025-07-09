@@ -20,20 +20,6 @@ export const createPaymentIntent = async (orderId, totalAmount, currency = 'usd'
   return res.data;
 };
 
-// Update payment status after successful payment
-export const updatePaymentStatus = async (orderId, paymentIntentId) => {
-  const token = await AsyncStorage.getItem('token');
-  console.log('API CALL: PUT', `${API_URL}/order/update-payment-status`, { orderId, paymentIntentId });
-  
-  const res = await axios.put(`${API_URL}/order/update-payment-status`, {
-    orderId: orderId,
-    paymentIntentId: paymentIntentId,
-  }, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
-};
-
 // Get payment history for user
 export const getPaymentHistory = async () => {
   const token = await AsyncStorage.getItem('token');
