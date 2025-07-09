@@ -2,8 +2,10 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from "react-native";
-
+import { FontAwesome } from '@expo/vector-icons';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import HomeScreen from "./screens/HomeScreen";
 import ProductListScreen from "./screens/ProductListScreen";
@@ -20,6 +22,40 @@ import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import { getToken } from "./api/users";
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#2a6ef7',
+        tabBarInactiveTintColor: '#888',
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 6,
+        },
+        tabBarIcon: ({ color, size, focused }) => {
+          let iconName;
+          if (route.name === 'Home') iconName = 'home';
+          else if (route.name === 'Wishlist') iconName = 'heart';
+          else if (route.name === 'Cart') iconName = 'shopping-cart';
+          else if (route.name === 'Orders') iconName = 'list-alt';
+          else if (route.name === 'Profile') iconName = 'user';
+          return <FontAwesome name={iconName} size={size || 22} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Wishlist" component={ProductListScreen} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Orders" component={OrdersScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -34,76 +70,70 @@ export default function App() {
 
   if (isLoggedIn === null) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator size="large" />
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#fff",
-            borderBottomWidth: 1,
-            borderBottomColor: "#eee",
-            elevation: 0,
-            shadowOpacity: 0,
-          },
-          headerTitleStyle: {
-            color: "#111",
-            fontWeight: "bold",
-            fontSize: 20,
-            letterSpacing: 0.5,
-          },
-          headerTitleAlign: "center",
-          headerTintColor: "#111",
-        }}
-        initialRouteName={isLoggedIn ? "Home" : "Login"}
-      >
-        {isLoggedIn ? (
-          <>
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="ProductList" component={ProductListScreen} />
-            <Stack.Screen
-              name="ProductDetail"
-              component={ProductDetailScreen}
-            />
-            <Stack.Screen name="Cart" component={CartScreen} />
-            <Stack.Screen name="Orders" component={OrdersScreen} />
-            <Stack.Screen name="Payment" component={PaymentScreen} />
-            <Stack.Screen name="Profile">
-              {(props) => (
-                <ProfileScreen
-                  {...props}
-                  onLogout={() => setIsLoggedIn(false)}
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: "#fff",
+                borderBottomWidth: 1,
+                borderBottomColor: "#eee",
+                elevation: 0,
+                shadowOpacity: 0,
+              },
+              headerTitleStyle: {
+                color: "#111",
+                fontWeight: "bold",
+                fontSize: 20,
+                letterSpacing: 0.5,
+              },
+              headerTitleAlign: "center",
+              headerTintColor: "#111",
+            }}
+            initialRouteName={isLoggedIn ? "MainTabs" : "Login"}
+          >
+            {isLoggedIn ? (
+              <>
+                <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
+                <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+                <Stack.Screen name="Payment" component={PaymentScreen} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Login">
+                  {(props) => (
+                    <LoginScreen
+                      {...props}
+                      onLoginSuccess={() => setIsLoggedIn(true)}
+                    />
+                  )}
+                </Stack.Screen>
+                <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen
+                  name="ForgotPassword"
+                  component={ForgotPasswordScreen}
                 />
-              )}
-            </Stack.Screen>
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Login">
-              {(props) => (
-                <LoginScreen
-                  {...props}
-                  onLoginSuccess={() => setIsLoggedIn(true)}
+                <Stack.Screen
+                  name="ResetPassword"
+                  component={ResetPasswordScreen}
                 />
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-            />
-            <Stack.Screen
-              name="ResetPassword"
-              component={ResetPasswordScreen}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
