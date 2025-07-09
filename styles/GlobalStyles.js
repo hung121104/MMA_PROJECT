@@ -83,10 +83,12 @@ const GlobalStyles = StyleSheet.create({
   ph24: { paddingHorizontal: 24 },
   // Icon Button
   iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 999,
-    padding: 12,
     marginHorizontal: 8,
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -99,5 +101,13 @@ const GlobalStyles = StyleSheet.create({
     marginVertical: 16,
   },
 });
+
+export const colors = {
+  background: '#f8f8f8',
+  secondary: '#fff',
+  card: '#fff',
+  border: '#eee',
+  // add any other colors you need
+};
 
 export default GlobalStyles; 
