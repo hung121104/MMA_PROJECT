@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   agreementHighlight: {
-    color: '#FF3B5C',
+    color: '#2563eb',
     fontWeight: 'bold',
   },
   or: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginLink: {
-    color: '#FF3B5C',
+    color: '#2563eb',
     fontWeight: 'bold',
     marginLeft: 4,
     fontSize: 14,

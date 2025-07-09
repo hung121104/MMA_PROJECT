@@ -1,357 +1,165 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import PaymentComponent from '../components/PaymentComponent';
-import StripeProviderWrapper from '../components/StripeProvider';
-import PaymentDebug from '../components/PaymentDebug';
-import { API_URL } from '@env';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { removeMultipleFromCart } from '../api/cart';
+import { createOrder } from '../api/orders';
+import PaymentScreenStyles from '../styles/PaymentScreenStyles';
 
-// Replace this with your actual Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY || 'pk_test_your_publishable_key_here';
+export default function PaymentScreen({ navigation, route }) {
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [shippingInfo, setShippingInfo] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [selectedCartItems, setSelectedCartItems] = useState([]);
 
-export default function PaymentScreen({ route, navigation }) {
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [showDebug, setShowDebug] = useState(false);
-  
-  // Get order data from route params
-  const orderId = route.params?.orderId;
-  const totalAmount = route.params?.totalAmount;
-  const orderDetails = route.params?.orderDetails || null;
+  // Get selected cart items from route params and store them permanently
+  useEffect(() => {
+    if (route.params?.selectedCartItems && selectedCartItems.length === 0) {
+      setSelectedCartItems(route.params.selectedCartItems);
+      console.log('Selected cart items loaded:', route.params.selectedCartItems.length);
+    }
+  }, [route.params?.selectedCartItems]);
 
-  if (!orderId || !totalAmount) {
+  // Listen for payment data from PaymentMethodScreen
+  useEffect(() => {
+    if (route.params?.paymentData) {
+      const { shippingInfo: newShippingInfo, paymentMethod: newPaymentMethod } = route.params.paymentData;
+      setShippingInfo(newShippingInfo);
+      setPaymentMethod(newPaymentMethod);
+      
+      // Clear only the payment data, keep selectedCartItems
+      navigation.setParams({ paymentData: undefined });
+    }
+  }, [route.params?.paymentData]);
+
+  const handleCollectPaymentInfo = () => {
+    // Pass selected cart items to PaymentMethodScreen
+    navigation.navigate('PaymentMethod', {
+      selectedCartItems: selectedCartItems
+    });
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!shippingInfo || !paymentMethod) {
+      Alert.alert('Error', 'Please fill in shipping and payment info.');
+      return;
+    }
+
+    if (selectedCartItems.length === 0) {
+      Alert.alert('Error', 'No items selected for order.');
+      return;
+    }
+    
+    setSubmitting(true);
+    
+    try {
+      // Build orderItems from selected cart items
+      const orderItems = selectedCartItems.map(item => ({
+        name: item.product.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.product.images && item.product.images[0] ? item.product.images[0].url : '',
+        product: item.product._id,
+      }));
+      
+      const selectedTotal = selectedCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      // Build order JSON
+      const orderData = {
+        shippingInfo,
+        orderItems,
+        paymentMethod,
+        itemPrice: selectedTotal,
+        tax: Math.round(selectedTotal * 0.1), // 10% tax
+        shippingCharges: 20, // You can calculate or set as needed
+        totalAmount: selectedTotal + Math.round(selectedTotal * 0.1) + 20,
+      };
+      
+      // Place the order first
+      await createOrder(orderData);
+      
+      // Only after successful order placement, delete selected cart items
+      if (selectedCartItems.length > 0) {
+        try {
+          // Prepare items for bulk deletion
+          const itemsToRemove = selectedCartItems.map(item => ({
+            productId: item.product._id,
+            quantity: item.quantity
+          }));
+          
+          console.log('Items to remove from cart:', itemsToRemove);
+          
+          // Remove items from cart
+          await removeMultipleFromCart(itemsToRemove);
+          console.log('Selected cart items removed successfully after order placement');
+        } catch (error) {
+          console.error('Error removing cart items:', error);
+          // Don't fail the order if cart removal fails
+          Alert.alert('Warning', 'Order placed successfully but there was an issue clearing your cart.');
+        }
+      }
+      
+      Alert.alert('Success', 'Order placed successfully!');
+      navigation.navigate('MainTabs', { screen: 'Orders' });
+      
+    } catch (err) {
+      console.error('Order placement error:', err);
+      Alert.alert('Error', err?.response?.data?.message || 'Failed to place order');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', margin: 24 }}>
-          There is no order that needs to be paid at this time.
-        </Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ backgroundColor: '#0066cc', padding: 12, borderRadius: 8 }}>
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Go Back</Text>
-        </TouchableOpacity>
+      <View style={PaymentScreenStyles.centered}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
-  const orderData = {
-    orderId,
-    totalAmount,
-    currency: 'usd',
-    orderDetails,
-  };
-
-  // Handle successful payment
-  const handlePaymentSuccess = (paymentIntent) => {
-    console.log('Payment successful:', paymentIntent);
-    setPaymentStatus('success');
-    
-    // You can navigate to a success screen or update your app state here
-    // Alert.alert(
-    //   'Payment Successful!',
-    //   `Order ${orderData.orderId} has been paid successfully.`,
-    //   [
-    //     {
-    //       text: 'View Orders',
-    //       onPress: () => navigation.navigate('Orders'),
-    //     },
-    //     {
-    //       text: 'Continue Shopping',
-    //       onPress: () => navigation.navigate('Home'),
-    //     },
-    //   ]
-    // );
-  };
-
-  // Handle payment errors
-  const handlePaymentError = (error) => {
-    console.error('Payment error:', error);
-    setPaymentStatus('error');
-    
-    // You can handle different types of errors here
-    Alert.alert(
-      'Payment Failed',
-      'There was an issue processing your payment. Please try again.',
-      [{ text: 'OK' }]
-    );
-  };
-
-  // Format amount for display
-  const formatAmount = (amount) => {
-    return (amount / 100).toFixed(2);
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Complete Payment</Text>
-        <Text style={styles.headerSubtitle}>
-          Secure payment powered by Stripe
-        </Text>
-      </View>
-
-      {/* Order Summary */}
-      {orderData.orderDetails && (
-        <View style={styles.orderSummary}>
-          <Text style={styles.summaryTitle}>Order Summary</Text>
-          
-          <View style={styles.orderInfo}>
-            <Text style={styles.orderId}>Order #{orderData.orderId}</Text>
-            <Text style={styles.orderDate}>
-              Created: {formatDate(orderData.orderDetails.createdAt)}
-            </Text>
-          </View>
-
-          {orderData.orderDetails.orderItems && orderData.orderDetails.orderItems.length > 0 && (
-            <View style={styles.itemsContainer}>
-              <Text style={styles.itemsTitle}>Items:</Text>
-              {orderData.orderDetails.orderItems.map((item, index) => (
-                <View key={index} style={styles.itemRow}>
-                  <Text style={styles.itemName}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.itemQuantity}>
-                    x{item.quantity}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View style={styles.totalContainer}>
-            <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalAmount}>
-              ${formatAmount(orderData.totalAmount)}
-            </Text>
-          </View>
+    <View style={PaymentScreenStyles.container}>
+      <Text style={PaymentScreenStyles.title}>Payment</Text>
+      
+      {/* Selected Items Summary */}
+      <Text style={PaymentScreenStyles.label}>Selected Items ({selectedCartItems.length}):</Text>
+      {selectedCartItems.map((item, index) => (
+        <View key={index} style={PaymentScreenStyles.itemSummary}>
+          <Text style={PaymentScreenStyles.itemName}>{item.product.name}</Text>
+          <Text style={PaymentScreenStyles.itemDetail}>Qty: {item.quantity} x ${(item.price / 100).toFixed(2)}</Text>
+          <Text style={PaymentScreenStyles.itemTotal}>${((item.price * item.quantity) / 100).toFixed(2)}</Text>
         </View>
-      )}
-
-      <StripeProviderWrapper publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <PaymentComponent
-          orderId={orderData.orderId}
-          totalAmount={orderData.totalAmount}
-          currency={orderData.currency}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentError={handlePaymentError}
-          apiBaseUrl={API_URL} // Use the actual API URL from environment
-          navigation={navigation} // Pass navigation for redirecting after payment
-        />
-      </StripeProviderWrapper>
-
-      {paymentStatus && (
-        <View style={styles.statusContainer}>
-          <Text style={[
-            styles.statusText,
-            paymentStatus === 'success' ? styles.successText : styles.errorText
-          ]}>
-            Payment Status: {paymentStatus === 'success' ? 'Success' : 'Failed'}
-          </Text>
+      ))}
+      
+      {/* Shipping Info Section */}
+      <Text style={PaymentScreenStyles.label}>Shipping Info:</Text>
+      {shippingInfo ? (
+        <View style={PaymentScreenStyles.infoBox}>
+          <Text>Address: {shippingInfo.address}</Text>
+          <Text>City: {shippingInfo.city}</Text>
+          <Text>Country: {shippingInfo.country}</Text>
         </View>
-      )}
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoTitle}>Test Card Information</Text>
-        <Text style={styles.infoText}>
-          Use these test card numbers for testing:
-        </Text>
-        <Text style={styles.cardNumber}>• 4242 4242 4242 4242 (Visa)</Text>
-        <Text style={styles.cardNumber}>• 4000 0000 0000 0002 (Visa - declined)</Text>
-        <Text style={styles.cardNumber}>• Any future date for expiry</Text>
-        <Text style={styles.cardNumber}>• Any 3-digit CVC</Text>
-      </View>
-
-      {/* Debug Section - Remove this after fixing the issue */}
-      <View style={styles.debugSection}>
-        <TouchableOpacity
-          style={styles.debugToggle}
-          onPress={() => setShowDebug(!showDebug)}
-        >
-          <Text style={styles.debugToggleText}>
-            {showDebug ? 'Hide Debug' : 'Show Debug Tool'}
-          </Text>
+      ) : (
+        <TouchableOpacity style={PaymentScreenStyles.infoButton} onPress={handleCollectPaymentInfo}>
+          <Text style={PaymentScreenStyles.infoButtonText}>Enter Shipping & Payment Info</Text>
         </TouchableOpacity>
-        
-        {showDebug && (
-          <PaymentDebug
-            orderId={orderData.orderId}
-            totalAmount={orderData.totalAmount}
-          />
-        )}
-      </View>
-    </ScrollView>
+      )}
+      
+      <Text style={PaymentScreenStyles.label}>Payment Method: {paymentMethod || '-'}</Text>
+      
+      <TouchableOpacity
+        style={[
+          PaymentScreenStyles.submitButton,
+          (!shippingInfo || !paymentMethod) && PaymentScreenStyles.submitButtonDisabled
+        ]}
+        onPress={handlePlaceOrder}
+        disabled={submitting || !shippingInfo || !paymentMethod}
+      >
+        <Text style={PaymentScreenStyles.submitButtonText}>
+          {submitting ? 'Placing Order...' : 'Place Order'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-  },
-  orderSummary: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
-  },
-  orderInfo: {
-    marginBottom: 12,
-  },
-  orderId: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  orderDate: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  itemsContainer: {
-    marginBottom: 12,
-  },
-  itemsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  itemName: {
-    fontSize: 14,
-    color: '#666666',
-    flex: 1,
-  },
-  itemQuantity: {
-    fontSize: 14,
-    color: '#666666',
-    fontWeight: '600',
-  },
-  totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  totalAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0066cc',
-  },
-  statusContainer: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  successText: {
-    color: '#28a745',
-  },
-  errorText: {
-    color: '#dc3545',
-  },
-  infoContainer: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  cardNumber: {
-    fontSize: 14,
-    color: '#333333',
-    fontFamily: 'monospace',
-    marginBottom: 4,
-  },
-  debugSection: {
-    margin: 16,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  debugToggle: {
-    padding: 12,
-    backgroundColor: '#0066cc',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  debugToggleText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    textAlign: 'center',
-  },
-}); 
+} 

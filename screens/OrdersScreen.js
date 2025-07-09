@@ -53,7 +53,7 @@ export default function OrdersScreen({ navigation }) {
     // Your backend stores amounts in dollars, so send as is
     const totalAmount = order.totalAmount;
 
-    navigation.navigate('Payment', {
+    navigation.navigate('PaymentComponent', {
       orderId: order.id || order._id,
       totalAmount: totalAmount,
       orderDetails: order,

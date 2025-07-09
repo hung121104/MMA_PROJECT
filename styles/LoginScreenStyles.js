@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#F43F5E',
+    color: '#2563eb',
   },
   loginButton: {
     ...GlobalStyles.button,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   signupLink: {
-    color: '#F43F5E',
+    color: '#2563eb',
     fontWeight: 'bold',
   },
 });
