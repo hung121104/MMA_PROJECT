@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import GlobalStyles, { colors } from './GlobalStyles';
+import { StyleSheet } from "react-native";
+import GlobalStyles, { colors } from "./GlobalStyles";
 
 const OrdersPaymentInfoScreenStyles = StyleSheet.create({
   container: {
@@ -18,7 +18,7 @@ const OrdersPaymentInfoScreenStyles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     marginBottom: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     ...GlobalStyles.input,
@@ -35,18 +35,18 @@ const OrdersPaymentInfoScreenStyles = StyleSheet.create({
     borderColor: colors.mediumGray,
     borderRadius: 8,
     marginBottom: 24,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   picker: {
     height: 50,
-    width: '100%',
+    width: "100%",
   },
   submitButton: {
     ...GlobalStyles.button,
     backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 24,
   },
   submitButtonText: {
