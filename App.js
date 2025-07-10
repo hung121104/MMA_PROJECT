@@ -16,7 +16,7 @@ import CartScreen from "./screens/CartScreen";
 import OrdersScreen from "./screens/OrdersScreen";
 import LoginScreen from "./screens/LoginScreen";
 import ProfileScreen from "./screens/ProfileScreen";
-import PaymentMethodScreen from "./screens/OrdersPaymentInfoScreen";
+import PaymentMethodScreen from "./screens/AdressManagingScreen";
 import PaymentScreen from "./screens/PaymentScreen";
 import PaymentComponentScreen from "./screens/PaymentWithStripeScreen";
 import RegisterScreen from "./screens/RegisterScreen";
