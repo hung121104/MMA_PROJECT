@@ -4,7 +4,6 @@ import styles from '../styles/HomeScreenStyles';
 import GlobalStyles, { colors } from '../styles/GlobalStyles';
 import { getAllProducts } from '../api/products';
 import { getAllCategories } from '../api/categories';
-import OptimizedImage from '../components/OptimizedImage';
 import { FontAwesome } from '@expo/vector-icons';
 import ProductCard from '../components/ProductCard';
 

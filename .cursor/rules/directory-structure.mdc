@@ -1,0 +1,70 @@
+# Project Directory Structure & Key Files
+
+This rule documents the main directory structure of the project, with notes on the purpose of each major folder and important files.
+
+## Root Structure
+
+```
+MMA_PROJECT/
+├── api/
+├── assets/
+├── components/
+├── config/
+├── hook/
+├── screens/
+├── styles/
+├── .cursor/
+├── .expo/
+├── node_modules/
+├── App.js
+├── app.json
+├── babel.config.js
+├── index.js
+├── package.json
+├── package-lock.json
+├── README_PAYMENT.md
+├── tailwind.config.js
+└── .gitignore
+```
+
+## Folder & File Descriptions
+
+- **api/**: Backend API logic for users, products, orders, categories, and authentication.
+  - Example: `users.js`, `products.js`, `orders.js`, `categories.js`, `auth.js`
+- **assets/**: Static assets such as images and icons.
+- **components/**: Reusable React Native UI components (e.g., `Header.js`, `ProductCard.js`, `PaymentComponent.js`).
+- **config/**: Configuration files (e.g., `stripe.js` for Stripe integration).
+- **hook/**: Custom React hooks (contents not listed, but typically for shared logic).
+- **screens/**: Main app screens/views (e.g., `HomeScreen.js`, `LoginScreen.js`, `RegisterScreen.js`, `PaymentScreen.js`).
+- **styles/**: Shared style definitions and style modules.
+- **.cursor/**: Cursor rules and configuration (not source code).
+- **.expo/**: Expo project configuration (auto-generated).
+- **node_modules/**: Installed dependencies (auto-generated).
+
+### Key Files
+- **App.js**: Main entry point for the React Native app.
+- **index.js**: App bootstrap file.
+- **app.json**: Expo project configuration.
+- **babel.config.js**: Babel configuration for JS/TS transpilation.
+- **package.json**: Project metadata and dependencies.
+- **package-lock.json**: Exact dependency versions.
+- **README_PAYMENT.md**: Documentation for payment integration.
+- **tailwind.config.js**: Tailwind CSS configuration for React Native.
+- **.gitignore**: Git ignore rules.
+
+## Best Practices
+- Organize code by feature (e.g., screens, components, api) for maintainability.
+- Keep configuration and secrets out of source folders.
+- Use `components/` for all reusable UI elements.
+- Place all environment/config files in `config/`.
+- Document any new folders or major files in this rule for team clarity.
+
+---
+
+**References:**
+- [React Native Folder Structure Best Practices](https://reactnative.dev/docs/structure)
+- [Expo Project Structure](https://docs.expo.dev/workflow/project-structure/)
+description:
+globs:
+alwaysApply: false
+---

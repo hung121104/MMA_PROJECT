@@ -75,7 +75,7 @@ export default function PaymentDebug({ orderId, totalAmount }) {
         <Text style={styles.value}>{orderId}</Text>
         
         <Text style={styles.label}>Total Amount:</Text>
-        <Text style={styles.value}>{totalAmount} cents (${(totalAmount / 100).toFixed(2)})</Text>
+        <Text style={styles.value}>{totalAmount} cents (${(totalAmount ).toFixed(2)})</Text>
       </View>
 
       <TouchableOpacity

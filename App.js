@@ -18,7 +18,7 @@ import LoginScreen from "./screens/LoginScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import PaymentMethodScreen from "./screens/AdressManagingScreen";
 import PaymentScreen from "./screens/PaymentScreen";
-import PaymentComponentScreen from "./screens/PaymentWithStripeScreen";
+import PaymentWithStripeScreen from "./screens/PaymentWithStripeScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
@@ -126,7 +126,7 @@ export default function App() {
                   <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
                   <Stack.Screen name="Payment" component={PaymentScreen} />
                   <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
-                  <Stack.Screen name="PaymentComponent" component={PaymentComponentScreen} />
+                  <Stack.Screen name="PaymentWithStripeScreen" component={PaymentWithStripeScreen} />
                 </>
               ) : (
                 <>
