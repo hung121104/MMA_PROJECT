@@ -1,14 +1,27 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { FontAwesome } from '@expo/vector-icons';
-import { getCart } from '../api/cart';
-import CartScreenStyles from '../styles/CartScreenStyles';
-import GlobalStyles, { colors } from '../styles/GlobalStyles';
-import OptimizedImage from '../components/OptimizedImage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CheckBox } from 'react-native-elements';
-import { Picker } from '@react-native-picker/picker';
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { FontAwesome } from "@expo/vector-icons";
+import {
+  getCart,
+  updateCartItem,
+  removeMultipleFromCart,
+  removeFromCart,
+} from "../api/cart";
+import CartScreenStyles from "../styles/CartScreenStyles";
+import GlobalStyles, { colors } from "../styles/GlobalStyles";
+import OptimizedImage from "../components/OptimizedImage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CheckBox } from "react-native-elements";
+import { Picker } from "@react-native-picker/picker";
 
 export default function CartScreen({ navigation }) {
   const [cart, setCart] = useState(null);
@@ -19,6 +32,9 @@ export default function CartScreen({ navigation }) {
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState({});
   const [variations, setVariations] = useState({});
+  const debounceTimeout = useRef(null);
+  const [lastQtyChange, setLastQtyChange] = useState(null);
+  const [deletedIds, setDeletedIds] = useState([]);
 
   const fetchCart = async () => {
     setLoading(true);
@@ -26,7 +42,9 @@ export default function CartScreen({ navigation }) {
       const cartData = await getCart();
       setCart(cartData);
       if (cartData.items && cartData.items.length > 0) {
-        const initialSelected = new Set(cartData.items.map(item => item.product._id));
+        const initialSelected = new Set(
+          cartData.items.map((item) => item.product._id)
+        );
         setSelectedItems(initialSelected);
       }
     } catch (err) {
@@ -38,7 +56,7 @@ export default function CartScreen({ navigation }) {
 
   const fetchAddresses = async () => {
     try {
-      const saved = await AsyncStorage.getItem('userAddresses');
+      const saved = await AsyncStorage.getItem("userAddresses");
       if (saved) {
         setAddresses(JSON.parse(saved));
       } else {
@@ -59,7 +77,7 @@ export default function CartScreen({ navigation }) {
   const handleDeleteAddress = async (index) => {
     try {
       const updated = addresses.filter((_, i) => i !== index);
-      await AsyncStorage.setItem('userAddresses', JSON.stringify(updated));
+      await AsyncStorage.setItem("userAddresses", JSON.stringify(updated));
       setAddresses(updated);
     } catch (e) {}
   };
@@ -78,7 +96,9 @@ export default function CartScreen({ navigation }) {
     if (selectAll) {
       setSelectedItems(new Set());
     } else {
-      const allProductIds = new Set(cart?.items?.map(item => item.product._id));
+      const allProductIds = new Set(
+        cart?.items?.map((item) => item.product._id)
+      );
       setSelectedItems(allProductIds);
     }
     setSelectAll(!selectAll);
@@ -86,32 +106,38 @@ export default function CartScreen({ navigation }) {
 
   const handleDeleteSelected = () => {
     if (!cart || !cart.items) return;
-    const remaining = cart.items.filter(item => !selectedItems.has(item.product._id));
+    const remaining = cart.items.filter(
+      (item) => !selectedItems.has(item.product._id)
+    );
+    const toDelete = cart.items.filter((item) =>
+      selectedItems.has(item.product._id)
+    );
     setCart({ ...cart, items: remaining });
     setSelectedItems(new Set());
     setSelectAll(false);
-    // TODO: Also update backend if needed
+
+    setDeletedIds(toDelete.map((item) => item.product._id));
   };
 
   const getSelectedItems = () => {
     if (!cart || !cart.items) return [];
-    return cart.items.filter(item => selectedItems.has(item.product._id));
+    return cart.items.filter((item) => selectedItems.has(item.product._id));
   };
 
   const getSelectedItemsTotal = () => {
     const selected = getSelectedItems();
-    return selected.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return selected.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
   const handleProceedToPayment = () => {
     const selectedCartItems = getSelectedItems();
     if (selectedCartItems.length === 0) {
-      alert('Please select at least one item to proceed.');
+      alert("Please select at least one item to proceed.");
       return;
     }
     const selectedTotal = getSelectedItemsTotal();
     const orderId = `order_${Date.now()}`;
-    navigation.navigate('Payment', {
+    navigation.navigate("Payment", {
       orderId: orderId,
       totalAmount: selectedTotal,
       selectedCartItems: selectedCartItems,
@@ -120,15 +146,85 @@ export default function CartScreen({ navigation }) {
 
   // Quantity controls
   const handleQuantityChange = (productId, delta) => {
-    setQuantities(prev => {
-      const newQty = Math.max(1, (prev[productId] || 1) + delta);
-      return { ...prev, [productId]: newQty };
+    // Find the cart item and its stock
+    const item = cart.items.find((item) => item.product._id === productId);
+    const stock = item.product.stock || 1; // default to 1 if stock is missing
+    const currentQty = quantities[productId] || item.quantity || 1;
+    const newQty = currentQty + delta;
+
+    if (delta > 0 && newQty > stock) {
+      alert("Insufficient stock");
+      return;
+    }
+    if (newQty < 1) return; // Prevent going below 1
+
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: newQty,
+    }));
+
+    setCart((prevCart) => {
+      if (!prevCart) return prevCart;
+      const updatedItems = prevCart.items.map((item) =>
+        item.product._id === productId ? { ...item, quantity: newQty } : item
+      );
+      setLastQtyChange({ productId, quantity: newQty });
+      return { ...prevCart, items: updatedItems };
     });
   };
 
   // Variation controls
   const handleVariationChange = (productId, value) => {
-    setVariations(prev => ({ ...prev, [productId]: value }));
+    setVariations((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  // Debounce for quantity change
+  useEffect(() => {
+    if (!lastQtyChange) return;
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+    debounceTimeout.current = setTimeout(() => {
+      updateCartItem(lastQtyChange.productId, lastQtyChange.quantity).catch(
+        () => alert("Failed to update cart on server")
+      );
+      setLastQtyChange(null);
+    }, 500);
+    return () => clearTimeout(debounceTimeout.current);
+  }, [lastQtyChange]);
+
+  // Debounce for delete
+  useEffect(() => {
+    if (!deletedIds.length) return;
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+    debounceTimeout.current = setTimeout(() => {
+      removeMultipleFromCart(
+        deletedIds.map((id) => ({ productId: id, quantity: 1 }))
+      ).catch(() => alert("Failed to update cart on server"));
+      setDeletedIds([]);
+    }, 500);
+    return () => clearTimeout(debounceTimeout.current);
+  }, [deletedIds]);
+
+  const handleDeleteProduct = async (productId) => {
+    setCart((prevCart) => {
+      if (!prevCart) return prevCart;
+      const updatedItems = prevCart.items.filter(
+        (item) => item.product._id !== productId
+      );
+      return { ...prevCart, items: updatedItems };
+    });
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(productId);
+      return newSet;
+    });
+
+    try {
+      await removeFromCart(productId);
+    } catch (err) {
+      alert("Failed to delete product from cart");
+    }
   };
 
   if (loading) {
@@ -145,64 +241,47 @@ export default function CartScreen({ navigation }) {
     <View style={CartScreenStyles.container}>
       {/* Sticky Header */}
       <View style={CartScreenStyles.stickyHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={GlobalStyles.iconButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={GlobalStyles.iconButton}
+        >
           <FontAwesome name="angle-left" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={CartScreenStyles.headerTitle}>Shopping Cart ({cartItems.length})</Text>
-        <TouchableOpacity onPress={() => setEditing(!editing)}>
-          <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 16 }}>{editing ? 'Done' : 'Edit'}</Text>
-        </TouchableOpacity>
+        <Text style={CartScreenStyles.headerTitle}>
+          Shopping Cart ({cartItems.length})
+        </Text>
       </View>
 
-      {/* Address Slider */}
-      {/* <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, paddingBottom:30 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          {addresses.length === 0 ? (
-            <TouchableOpacity style={CartScreenStyles.addressCard} onPress={() => navigation.navigate('PaymentMethod')}>
-              <Text style={CartScreenStyles.addressText}>No address found. Tap to add one.</Text>
-            </TouchableOpacity>
-          ) : (
-            addresses.map((addr, idx) => (
-              <View key={idx} style={[CartScreenStyles.addressCard, { minWidth: 170, maxWidth: 210, marginRight: 12 }]}> 
-                <View style={CartScreenStyles.addressTopRow}>
-                  <Text style={CartScreenStyles.addressLabel}>Address :</Text>
-                  <View style={CartScreenStyles.addressActions}>
-                    <TouchableOpacity style={CartScreenStyles.editIcon} onPress={() => navigation.navigate('PaymentMethod')}>
-                      <FontAwesome name="pencil" size={16} color={colors.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={CartScreenStyles.trashIcon} onPress={() => handleDeleteAddress(idx)}>
-                      <FontAwesome name="trash" size={16} color={colors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <Text style={CartScreenStyles.addressText}>{addr.address}</Text>
-              </View>
-            ))
-          )}
-          <TouchableOpacity style={[CartScreenStyles.addAddressCard, { minWidth: 56, minHeight: 56 }]} onPress={() => navigation.navigate('PaymentMethod')}>
-            <FontAwesome name="plus-circle" size={32} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView> */}
-
       {/* Cart Items List */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 180 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 180 }}
+      >
         {cartItems.length === 0 ? (
           <View style={CartScreenStyles.centered}>
             <Text style={CartScreenStyles.emptyText}>Your cart is empty</Text>
           </View>
         ) : (
           cartItems.map((item, idx) => (
-            <View key={item.product._id || idx} style={CartScreenStyles.cartItemRow}>
-              <CheckBox
-                checked={selectedItems.has(item.product._id)}
-                onPress={() => toggleItemSelection(item.product._id)}
-                checkedColor={colors.primary}
-                uncheckedColor={colors.mediumGray}
-                containerStyle={{ padding: 0, margin: 0 }}
-              />
+            <View
+              key={item.product._id || idx}
+              style={CartScreenStyles.cartItemRow}
+            >
+              <View>
+                <CheckBox
+                  checked={selectedItems.has(item.product._id)}
+                  onPress={() => toggleItemSelection(item.product._id)}
+                  checkedColor={colors.primary}
+                  uncheckedColor={colors.mediumGray}
+                  containerStyle={{ padding: 0, margin: 0 }}
+                />
+              </View>
+
               <OptimizedImage
-                source={item.product.images?.[0]?.url || 'https://via.placeholder.com/100x100?text=No+Image'}
+                source={
+                  item.product.images?.[0]?.url ||
+                  "https://via.placeholder.com/100x100?text=No+Image"
+                }
                 style={CartScreenStyles.cartItemImage}
                 width={80}
                 height={80}
@@ -210,49 +289,72 @@ export default function CartScreen({ navigation }) {
                 fallbackText="No image"
               />
               <View style={CartScreenStyles.cartItemInfo}>
-                <Text style={CartScreenStyles.cartItemName} numberOfLines={2}>{item.product.name}</Text>
-                <View style={CartScreenStyles.cartItemVariationRow}>
-                  <Picker
-                    selectedValue={variations[item.product._id] || (item.product.variations?.[0] || '')}
-                    style={CartScreenStyles.cartItemPicker}
-                    onValueChange={value => handleVariationChange(item.product._id, value)}
-                  >
-                    {(item.product.variations || []).map((v, i) => (
-                      <Picker.Item key={i} label={v} value={v} />
-                    ))}
-                  </Picker>
-                </View>
+                <Text style={CartScreenStyles.cartItemName} numberOfLines={2}>
+                  {item.product.name}
+                </Text>
+
                 <View style={CartScreenStyles.cartItemPriceRow}>
-                  <Text style={CartScreenStyles.cartItemPrice}>${item.price.toLocaleString()}</Text>
+                  <Text style={CartScreenStyles.cartItemPrice}>
+                    ${item.price.toLocaleString()}
+                  </Text>
                   {item.product.oldPrice && (
-                    <Text style={CartScreenStyles.cartItemOldPrice}>${item.product.oldPrice.toLocaleString()}</Text>
+                    <Text style={CartScreenStyles.cartItemOldPrice}>
+                      ${item.product.oldPrice.toLocaleString()}
+                    </Text>
                   )}
                 </View>
                 <View style={CartScreenStyles.cartItemQtyRow}>
-                  <TouchableOpacity onPress={() => handleQuantityChange(item.product._id, -1)} style={CartScreenStyles.qtyBtn}>
-                    <FontAwesome name="minus" size={16} color={colors.textPrimary} />
+                  <TouchableOpacity
+                    onPress={() => handleQuantityChange(item.product._id, -1)}
+                    style={CartScreenStyles.qtyBtn}
+                  >
+                    <FontAwesome
+                      name="minus"
+                      size={16}
+                      color={colors.textPrimary}
+                    />
                   </TouchableOpacity>
-                  <Text style={CartScreenStyles.cartItemQty}>{quantities[item.product._id] || item.quantity || 1}</Text>
-                  <TouchableOpacity onPress={() => handleQuantityChange(item.product._id, 1)} style={CartScreenStyles.qtyBtn}>
-                    <FontAwesome name="plus" size={16} color={colors.textPrimary} />
+                  <Text style={CartScreenStyles.cartItemQty}>
+                    {quantities[item.product._id] || item.quantity || 1}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleQuantityChange(item.product._id, 1)}
+                    style={CartScreenStyles.qtyBtn}
+                    disabled={
+                      (quantities[item.product._id] || item.quantity || 1) >=
+                      (item.product.stock || 1)
+                    }
+                  >
+                    <FontAwesome
+                      name="plus"
+                      size={16}
+                      color={
+                        (quantities[item.product._id] || item.quantity || 1) >=
+                        (item.product.stock || 1)
+                          ? colors.mediumGray
+                          : colors.textPrimary
+                      }
+                    />
                   </TouchableOpacity>
                 </View>
+                <Text style={{ color: colors.mediumGray, fontSize: 12 }}>
+                  In stock: {item.product.stock}
+                </Text>
               </View>
+              <TouchableOpacity
+                onPress={() => handleDeleteProduct(item.product._id)}
+                style={{ marginLeft: 8, padding: 4 }}
+              >
+                <FontAwesome
+                  name="trash"
+                  size={20}
+                  color={colors.danger || "red"}
+                />
+              </TouchableOpacity>
             </View>
           ))
         )}
       </ScrollView>
-
-      {/* Voucher/Summary Bar */}
-      {/* <View style={CartScreenStyles.summaryBar}>
-        <Text style={CartScreenStyles.summaryVoucher}><FontAwesome name="ticket" size={16} color={colors.primary} />  Shopee Vouchers</Text>
-        <TouchableOpacity>
-          <Text style={CartScreenStyles.summaryVoucherBtn}>Free Shipping Voucher</Text>
-        </TouchableOpacity>
-      </View> */}
-      {/* <View style={CartScreenStyles.summaryBar}>
-        <Text style={CartScreenStyles.summaryCoin}><FontAwesome name="circle" size={16} color={colors.warning} />  Insufficient Coin Balance</Text>
-      </View> */}
 
       {/* Fixed Action Bar (Check Out) */}
       <View style={CartScreenStyles.fixedActionBarContainer}>
@@ -273,12 +375,15 @@ export default function CartScreen({ navigation }) {
           <TouchableOpacity
             style={[
               CartScreenStyles.payButton,
-              getSelectedItems().length === 0 && CartScreenStyles.payButtonDisabled
+              getSelectedItems().length === 0 &&
+                CartScreenStyles.payButtonDisabled,
             ]}
             onPress={handleProceedToPayment}
             disabled={getSelectedItems().length === 0}
           >
-            <Text style={CartScreenStyles.payButtonText}>Check Out ({getSelectedItems().length})</Text>
+            <Text style={CartScreenStyles.payButtonText}>
+              Check Out ({getSelectedItems().length})
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

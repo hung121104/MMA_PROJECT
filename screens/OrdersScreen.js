@@ -33,11 +33,12 @@ export default function OrdersScreen({ navigation }) {
   };
 
   const handlePayment = (order) => {
-    const orderId = `order_${Date.now()}`;
-    const totalAmount = Math.round(order.totalAmount * 100); // Convert to cents
-    navigation.navigate('Payment', {
+    const orderId = order._id || `order_${Date.now()}`;
+    const totalAmount = Math.round(order.totalAmount); // Convert to cents
+    navigation.navigate('PaymentWithStripeScreen', {
       orderId: orderId,
       totalAmount: totalAmount,
+      orderDetails: order,
     });
   };
 
@@ -85,7 +86,7 @@ export default function OrdersScreen({ navigation }) {
   };
 
   const formatAmount = (amount) => {
-    return (amount / 100).toFixed(2);
+    return (amount ).toFixed(2);
   };
 
   const renderOrderItem = ({ item: order }) => {
@@ -95,7 +96,6 @@ export default function OrdersScreen({ navigation }) {
     return (
       <View style={OrdersScreenStyles.orderCard}>
         <View style={OrdersScreenStyles.orderHeader}>
-          <Text style={OrdersScreenStyles.orderId}>Order #{order._id.slice(-8)}</Text>
           <View style={OrdersScreenStyles.statusContainer}>
             <View style={[OrdersScreenStyles.statusBadge, { backgroundColor: statusInfo.backgroundColor }]}>
               <Text style={[OrdersScreenStyles.statusText, { color: statusInfo.color }]}>
@@ -140,7 +140,7 @@ export default function OrdersScreen({ navigation }) {
             <Text style={OrdersScreenStyles.viewButtonText}>View Details</Text>
           </TouchableOpacity>
           
-          {order.paymentStatus === 'pending' && (
+          {order.paymentStatus === 'pending' && order.paymentMethod === 'ONLINE' && (
             <TouchableOpacity 
               style={OrdersScreenStyles.payButton}
               onPress={() => handlePayment(order)}

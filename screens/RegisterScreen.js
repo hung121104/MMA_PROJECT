@@ -1,17 +1,25 @@
 // ... existing imports ...
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { requestRegister, registerUser } from '../api/auth';
 import styles from '../styles/RegisterScreenStyles';
 import GlobalStyles from '../styles/GlobalStyles';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation, route }) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Prefill email and go to OTP step if coming from login (for verification)
+  useEffect(() => {
+    if (route?.params?.email) {
+      setForm(f => ({ ...f, email: route.params.email }));
+      setStep(2); // Go directly to OTP step
+    }
+  }, [route?.params?.email]);
 
   const handleRequestRegister = async () => {
     if (form.password !== form.confirmPassword) {
@@ -116,18 +124,6 @@ const RegisterScreen = ({ navigation }) => {
           <TouchableOpacity onPress={handleRequestRegister} style={styles.button}>
             <Text style={styles.buttonText}>Create Account</Text>
           </TouchableOpacity>
-          <Text style={GlobalStyles.textMuted}>- OR Continue with -</Text>
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialIcon}>
-              <FontAwesome name="google" size={24} color="#EA4335" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialIcon}>
-              <FontAwesome name="apple" size={24} color="#111" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialIcon}>
-              <FontAwesome name="facebook" size={24} color="#1877F3" />
-            </TouchableOpacity>
-          </View>
           <View style={styles.loginRow}>
             <Text style={GlobalStyles.textPrimary}>I Already Have an Account</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>

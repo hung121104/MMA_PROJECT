@@ -1,93 +1,135 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import { loginUser, setToken } from '../api/auth';
-import styles from '../styles/LoginScreenStyles';
-import GlobalStyles from '../styles/GlobalStyles';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { loginUser, setToken } from "../api/auth";
+import styles from "../styles/LoginScreenStyles";
+import GlobalStyles from "../styles/GlobalStyles";
+import * as yup from "yup";
+import useFormValidation from "../hook/useFormValidation";
+import FormError from "../components/common/FormError";
+
+const loginSchema = yup.object().shape({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup.string().required("Password is required"),
+});
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const form = useFormValidation(
+    { email: "", password: "" },
+    loginSchema,
+    async (values) => {
+      try {
+        const res = await loginUser(values.email, values.password);
+        console.log("Login API response:", res);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    try {
-      const res = await loginUser(email, password);
-      if (res && res.token) {
-        await setToken(res.token);
-        onLoginSuccess();
-      } else {
-        Alert.alert('Login Failed', res.message || 'Invalid credentials');
+        if (res && res.token) {
+          await setToken(res.token);
+          onLoginSuccess();
+        } else {
+          Alert.alert("Login Failed", res.message || "Invalid credentials");
+        }
+      } catch (err) {
+        const message = err?.response?.data?.message;
+        if (message && message.includes("NOT verify")) {
+          Alert.alert(
+            "Account not verified",
+            "Please verify your account.",
+            [
+              {
+                text: "OK",
+                onPress: () => navigation.navigate("Register", { email: values.email })
+              }
+            ]
+          );
+        } else {
+          Alert.alert(
+            "Login Failed",
+            message || "Invalid credentials"
+          );
+        }
       }
-    } catch (err) {
-      Alert.alert('Login Failed', err?.response?.data?.message || 'Invalid credentials');
-    } finally {
-      setLoading(false);
     }
-  };
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={[styles.title, GlobalStyles.textPrimary]}>Welcome{"\n"}Back!</Text>
-      {/* Username/Email Input */}
+      <Text style={[styles.title, GlobalStyles.textPrimary]}>
+        Welcome{"\n"}Back!
+      </Text>
+      {/* Email Input */}
       <View style={styles.inputContainer}>
-        <FontAwesome name="user" size={20} color="#888" style={styles.inputIcon} />
+        <FontAwesome
+          name="user"
+          size={20}
+          color="#888"
+          style={styles.inputIcon}
+        />
         <TextInput
           style={styles.input}
           placeholder="Username or Email"
-          value={email}
-          onChangeText={setEmail}
+          value={form.values.email}
+          onChangeText={(text) => form.handleChange("email", text)}
           autoCapitalize="none"
+          onBlur={() => form.validate()}
         />
+        <FormError error={form.errors.email} />
       </View>
       {/* Password Input */}
       <View style={styles.inputContainer}>
-        <FontAwesome name="lock" size={20} color="#888" style={styles.inputIcon} />
+        <FontAwesome
+          name="lock"
+          size={20}
+          color="#888"
+          style={styles.inputIcon}
+        />
         <TextInput
           style={styles.input}
           placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
+          value={form.values.password}
+          onChangeText={(text) => form.handleChange("password", text)}
           secureTextEntry={!showPassword}
+          onBlur={() => form.validate()}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
+        <FormError error={form.errors.password} />
+        <TouchableOpacity onPress={() => setShowPassword((v) => !v)}>
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={22}
+            color="#888"
+          />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ForgotPassword')}>
+      <TouchableOpacity
+        style={styles.forgotPassword}
+        onPress={() => navigation.navigate("ForgotPassword")}
+      >
         <Text style={GlobalStyles.textError}>Forgot Password?</Text>
       </TouchableOpacity>
       {/* Login Button */}
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={handleLogin}
-        disabled={loading}
+        onPress={form.handleSubmit}
+        disabled={form.submitting}
       >
-        {loading ? (
+        {form.submitting ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={GlobalStyles.buttonText}>Login</Text>
         )}
       </TouchableOpacity>
-      {/* OR Continue with */}
-      <Text style={GlobalStyles.textMuted}>- OR Continue with -</Text>
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton} onPress={() => {}}>
-          <FontAwesome name="google" size={24} color="#EA4335" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton} onPress={() => {}}>
-          <FontAwesome name="apple" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton} onPress={() => {}}>
-          <FontAwesome name="facebook" size={24} color="#1877F3" />
-        </TouchableOpacity>
-      </View>
       {/* Sign Up Link */}
       <View style={styles.signupContainer}>
         <Text style={GlobalStyles.textMuted}>Create An Account </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={GlobalStyles.textError}>Sign Up</Text>
         </TouchableOpacity>
       </View>

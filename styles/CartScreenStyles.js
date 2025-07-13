@@ -270,10 +270,10 @@ const CartScreenStyles = StyleSheet.create({
   payButton: {
     ...GlobalStyles.button,
     backgroundColor: colors.primary,
-    paddingVertical: 14,
+    paddingVertical: 7,
     borderRadius: 10,
     marginBottom: 0,
-    width: '100%',
+    width: '60%',
     maxWidth: 500,
   },
   payButtonDisabled: {
@@ -282,7 +282,7 @@ const CartScreenStyles = StyleSheet.create({
   payButtonText: {
     ...GlobalStyles.buttonText,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 14,
   },
   emptyText: {
     ...GlobalStyles.bodyText,

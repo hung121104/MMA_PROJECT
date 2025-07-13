@@ -1,0 +1,97 @@
+# Application Stack & Major Dependencies
+
+This rule documents the core technology stack and major dependencies used in this project, including version numbers and best practice notes for each.
+
+## Core Stack
+
+- **React Native**: `0.79.4`
+  - Modern, cross-platform mobile app framework.
+  - Best Practice: Keep up with minor releases for bug/security fixes. Test third-party library compatibility before upgrading.
+
+- **Expo**: `~53.0.12`
+  - Toolchain for React Native apps, simplifies development and deployment.
+  - Best Practice: Use the same Expo SDK version across all team members. Run `expo upgrade` for major updates.
+
+- **React**: `19.0.0`
+  - Core UI library for building components.
+  - Best Practice: Use functional components and hooks. Avoid deprecated lifecycle methods.
+
+## Navigation
+
+- **@react-navigation/native**: `^7.1.14`
+- **@react-navigation/bottom-tabs**: `^7.4.2`
+- **@react-navigation/native-stack**: `^7.3.21`
+  - Best Practice: Use stack and tab navigators for clear navigation structure. Keep navigation logic outside of UI components when possible.
+
+## State & Storage
+
+- **@react-native-async-storage/async-storage**: `^2.2.0`
+  - For persistent key-value storage.
+  - Best Practice: Use for small, non-sensitive data. For sensitive data, use secure storage solutions.
+
+## UI & Styling
+
+- **react-native-elements**: `^3.4.3`
+  - UI toolkit for React Native.
+  - Best Practice: Use consistent component styling. Override styles with care.
+
+- **tailwindcss-react-native**: `^1.7.10`
+  - Utility-first styling for React Native.
+  - Best Practice: Use utility classes for rapid prototyping. Extract repeated styles into custom classes.
+
+## API & Networking
+
+- **axios**: `^1.10.0`
+  - Promise-based HTTP client.
+  - Best Practice: Centralize API logic. Use interceptors for auth/error handling.
+
+## Payments
+
+- **@stripe/stripe-react-native**: `^0.48.0`
+  - Stripe integration for payments.
+  - Best Practice: Keep keys secure. Test in sandbox before production.
+
+## Environment Variables
+
+- **react-native-dotenv**: `^3.4.11`
+  - Loads .env variables into React Native.
+  - Best Practice: Never commit .env files. Restart Metro/Expo after changes.
+
+## Icons
+
+- **react-native-vector-icons** (implied by usage)
+  - Icon library for React Native.
+  - Best Practice: Only import icon sets you use to reduce bundle size.
+
+## Miscellaneous
+
+- **expo-status-bar**: `~2.2.3`
+  - Status bar control for Expo apps.
+
+- **react-native-safe-area-context**: `5.4.0`
+  - Handles safe area insets for notched devices.
+
+## Dev Tools
+
+- **@babel/core**: `^7.20.0`
+  - Babel compiler for JS/TS.
+
+## General Best Practices
+
+1. Keep dependencies up to date, but test thoroughly after upgrades.
+2. Use `.env` for secrets and environment-specific config; never commit secrets.
+3. Use functional components and hooks for new code.
+4. Centralize API and navigation logic for maintainability.
+5. Use TypeScript for type safety if possible (consider adding if not present).
+
+---
+
+**References:**
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native Docs](https://reactnative.dev/docs/getting-started)
+- [React Navigation](https://reactnavigation.org/docs/getting-started)
+- [Stripe React Native](https://stripe.com/docs/payments/accept-a-payment?platform=react-native)
+description:
+globs:
+alwaysApply: false
+---
