@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, RefreshControl } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -22,6 +22,7 @@ import PaymentWithStripeScreen from "./screens/PaymentWithStripeScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import UpdatePasswordScreen from "./screens/UpdatePassword";
 
 import { getToken } from "./api/auth";
 
@@ -58,7 +59,7 @@ function MainTabNavigator({ onLogout }) {
       <Tab.Screen name="Orders" component={OrdersScreen} />
       <Tab.Screen
         name="Profile"
-        children={() => <ProfileScreen onLogout={onLogout} />}
+        children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
       />
     </Tab.Navigator>
   );
@@ -66,6 +67,7 @@ function MainTabNavigator({ onLogout }) {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -77,6 +79,12 @@ export default function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refresh(); // This is your hook's refresh function
+    setRefreshing(false);
   };
 
   if (isLoggedIn === null) {
@@ -120,13 +128,16 @@ export default function App() {
                 <>
                   <Stack.Screen
                     name="MainTabs"
+                    children={(props) => <MainTabNavigator {...props} onLogout={handleLogout} />}
                     options={{ headerShown: false }}
-                    children={() => <MainTabNavigator onLogout={handleLogout} />}
                   />
                   <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
                   <Stack.Screen name="Payment" component={PaymentScreen} />
                   <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
                   <Stack.Screen name="PaymentWithStripeScreen" component={PaymentWithStripeScreen} />
+                  <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
+                  <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+
                 </>
               ) : (
                 <>
@@ -139,14 +150,8 @@ export default function App() {
                     )}
                   </Stack.Screen>
                   <Stack.Screen name="Register" component={RegisterScreen} />
-                  <Stack.Screen
-                    name="ForgotPassword"
-                    component={ForgotPasswordScreen}
-                  />
-                  <Stack.Screen
-                    name="ResetPassword"
-                    component={ResetPasswordScreen}
-                  />
+                  <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                  <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
                 </>
               )}
             </Stack.Navigator>

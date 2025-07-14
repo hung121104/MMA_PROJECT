@@ -5,6 +5,7 @@ import ResetPasswordScreenStyles from '../styles/ResetPasswordScreenStyles';
 import * as yup from 'yup';
 import useFormValidation from '../hook/useFormValidation';
 import FormError from '../components/common/FormError';
+import { getToken } from '../api/auth';
 
 const resetSchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -21,7 +22,8 @@ export default function ResetPasswordScreen({ navigation, route }) {
         const data = await resetPassword(values.email, values.otp, values.newPassword);
         if (data.success) {
           Alert.alert('Success', 'Your password has been reset.');
-          navigation.navigate('Login');
+          const token = await getToken();
+            navigation.navigate('Login');
         } else {
           Alert.alert('Error', data.message || 'Failed to reset password.');
         }

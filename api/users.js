@@ -55,4 +55,18 @@ export const getToken = async () => {
 
 export const removeToken = async () => {
   await AsyncStorage.removeItem('token');
-}; 
+};
+
+export const updatePassword = async (oldPassword, newPassword) => {
+  const token = await getToken();
+  const res = await axios.put(
+    `${API_URL}/user/update-password`,
+    { oldPassword, newPassword },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
