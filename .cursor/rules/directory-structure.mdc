@@ -1,3 +1,6 @@
+---
+alwaysApply: true
+---
 # Project Directory Structure & Key Files
 
 This rule documents the main directory structure of the project, with notes on the purpose of each major folder and important files.
@@ -23,7 +26,6 @@ MMA_PROJECT/
 ├── package.json
 ├── package-lock.json
 ├── README_PAYMENT.md
-├── tailwind.config.js
 └── .gitignore
 ```
 
@@ -49,7 +51,6 @@ MMA_PROJECT/
 - **package.json**: Project metadata and dependencies.
 - **package-lock.json**: Exact dependency versions.
 - **README_PAYMENT.md**: Documentation for payment integration.
-- **tailwind.config.js**: Tailwind CSS configuration for React Native.
 - **.gitignore**: Git ignore rules.
 
 ## Best Practices
@@ -64,7 +65,8 @@ MMA_PROJECT/
 **References:**
 - [React Native Folder Structure Best Practices](https://reactnative.dev/docs/structure)
 - [Expo Project Structure](https://docs.expo.dev/workflow/project-structure/)
-description:
-globs:
-alwaysApply: false
----
+
+
+**References:**
+- [React Native Folder Structure Best Practices](https://reactnative.dev/docs/structure)
+- [Expo Project Structure](https://docs.expo.dev/workflow/project-structure/)

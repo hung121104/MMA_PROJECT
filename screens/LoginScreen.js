@@ -75,7 +75,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         />
         <TextInput
           style={styles.input}
-          placeholder="Username or Email"
+          placeholder="Email"
           value={form.values.email}
           onChangeText={(text) => form.handleChange("email", text)}
           autoCapitalize="none"
