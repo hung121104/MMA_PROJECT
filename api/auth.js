@@ -52,4 +52,13 @@ export const getToken = async () => {
 
 export const removeToken = async () => {
   await AsyncStorage.removeItem('token');
+  await AsyncStorage.removeItem('userRole');
+};
+
+export const setUserRole = async (role) => {
+  await AsyncStorage.setItem('userRole', role);
+};
+
+export const getUserRole = async () => {
+  return await AsyncStorage.getItem('userRole');
 };

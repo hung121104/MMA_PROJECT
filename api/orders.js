@@ -4,7 +4,7 @@ import {API_URL} from '@env';
 
 // Get all orders (admin)
 export const getOrders = async (token) => {
-  const res = await axios.get(`${API_URL}/order/all`, {
+  const res = await axios.get(`${API_URL}/order/get-all-orders`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data.orders;

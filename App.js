@@ -23,8 +23,9 @@ import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import UpdatePasswordScreen from "./screens/UpdatePassword";
+import AdminHomeScreen from "./screens/AdminHomeScreen";
 
-import { getToken } from "./api/auth";
+import { getToken, getUserRole } from "./api/auth";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,20 +66,51 @@ function MainTabNavigator({ onLogout }) {
   );
 }
 
+function AdminTabNavigator({ onLogout }) {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#2a6ef7',
+        tabBarInactiveTintColor: '#888',
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 6,
+        },
+        tabBarIcon: ({ color, size, focused }) => {
+          let iconName;
+          if (route.name === 'AdminHome') iconName = 'dashboard';
+          else if (route.name === 'Profile') iconName = 'user';
+          return <FontAwesome name={iconName} size={size || 22} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="AdminHome" component={AdminHomeScreen} options={{ title: 'Dashboard' }} />
+      <Tab.Screen name="Profile" children={(props) => <ProfileScreen {...props} onLogout={onLogout} />} />
+    </Tab.Navigator>
+  );
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const checkToken = async () => {
+    const checkTokenAndRole = async () => {
       const token = await getToken();
+      const role = await getUserRole();
       setIsLoggedIn(!!token);
+      setUserRole(role);
     };
-    checkToken();
+    checkTokenAndRole();
   }, []);
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setUserRole(null);
   };
 
   const onRefresh = async () => {
@@ -122,9 +154,25 @@ export default function App() {
                 headerTitleAlign: "center",
                 headerTintColor: "#111",
               }}
-              initialRouteName={isLoggedIn ? "MainTabs" : "Login"}
+              initialRouteName={
+                isLoggedIn
+                  ? userRole === "admin"
+                    ? "AdminTabs"
+                    : "MainTabs"
+                  : "Login"
+              }
             >
               {isLoggedIn ? (
+                userRole === "admin" ? (
+                  <>
+                    <Stack.Screen
+                      name="AdminTabs"
+                      children={(props) => <AdminTabNavigator {...props} onLogout={handleLogout} />}
+                      options={{ headerShown: false }}
+                    />
+                    {/* Add other admin screens here if needed */}
+                  </>
+                ) : (
                 <>
                   <Stack.Screen
                     name="MainTabs"
@@ -139,13 +187,17 @@ export default function App() {
                   <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
 
                 </>
+                )
               ) : (
                 <>
                   <Stack.Screen name="Login">
                     {(props) => (
                       <LoginScreen
                         {...props}
-                        onLoginSuccess={() => setIsLoggedIn(true)}
+                        onLoginSuccess={(role) => {
+                          setIsLoggedIn(true);
+                          setUserRole(role);
+                        }}
                       />
                     )}
                   </Stack.Screen>

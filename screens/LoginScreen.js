@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { loginUser, setToken } from "../api/auth";
+import { loginUser, setToken, setUserRole } from "../api/auth";
 import styles from "../styles/LoginScreenStyles";
 import GlobalStyles from "../styles/GlobalStyles";
 import * as yup from "yup";
@@ -33,7 +33,8 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
 
         if (res && res.token) {
           await setToken(res.token);
-          onLoginSuccess();
+          await setUserRole(res.user.role); // Save the user role
+          onLoginSuccess(res.user.role); // Pass the role up
         } else {
           Alert.alert("Login Failed", res.message || "Invalid credentials");
         }
