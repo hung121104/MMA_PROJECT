@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import OptimizedImage from './OptimizedImage';
+import React from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
+import OptimizedImage from "./OptimizedImage";
+
+const CARD_MARGIN = 8;
+const CARD_WIDTH = Dimensions.get("window").width / 2 - CARD_MARGIN * 2;
 
 export default function ProductCard({ product }) {
   // Helper to render stars
@@ -12,7 +15,7 @@ export default function ProductCard({ product }) {
       stars.push(
         <FontAwesome
           key={i}
-          name={i <= rating ? 'star' : 'star-o'}
+          name={i <= rating ? "star" : "star-o"}
           size={16}
           color="#FFD700"
           style={{ marginRight: 2 }}
@@ -36,32 +39,24 @@ export default function ProductCard({ product }) {
       )}
       <View style={styles.content}>
         {/* Title */}
-        <Text
-          style={styles.title}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {product.name || ''}
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          {product.name || ""}
         </Text>
         {/* Description (always reserve 2 lines) */}
-        <Text
-          style={styles.description}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {product.description || ' '}
+        <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+          {product.description || " "}
         </Text>
         {/* Price Row (always reserve space) */}
         <View style={styles.priceRow}>
           <Text style={styles.price}>
-            {product.price ? `$${product.price}` : ' '}
+            {product.price ? `$${product.price}` : " "}
           </Text>
         </View>
         {/* Rating and review count (always reserve space) */}
         <View style={styles.ratingRow}>
           {renderStars()}
           <Text style={styles.reviewCount}>
-            {product.numReviews !== undefined ? product.numReviews : ' '}
+            {product.numReviews !== undefined ? product.numReviews : " "}
           </Text>
         </View>
       </View>
@@ -71,72 +66,72 @@ export default function ProductCard({ product }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    overflow: 'hidden',
-    margin: 3,
-    width: 180,
+    overflow: "hidden",
+    // margin: CARD_MARGIN,
+    width: CARD_WIDTH,
     height: 250,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 120,
   },
   content: {
     padding: 12,
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   title: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
-    color: '#222',
+    color: "#222",
     marginBottom: 2,
     height: 22, // 1 line
   },
   description: {
-    color: '#888',
+    color: "#888",
     fontSize: 13,
     marginBottom: 4,
     height: 36, // 2 lines
   },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
     height: 20, // fixed height for price row
   },
   price: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
-    color: '#222',
+    color: "#222",
     marginRight: 6,
   },
   oldPrice: {
     fontSize: 14,
-    color: '#888',
-    textDecorationLine: 'line-through',
+    color: "#888",
+    textDecorationLine: "line-through",
     marginRight: 6,
   },
   discount: {
     fontSize: 14,
-    color: '#f77c2a',
-    fontWeight: 'bold',
+    color: "#f77c2a",
+    fontWeight: "bold",
   },
   ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 2,
     height: 20, // fixed height for rating row
   },
   reviewCount: {
     fontSize: 13,
-    color: '#888',
+    color: "#888",
     marginLeft: 6,
   },
-}); 
+});
