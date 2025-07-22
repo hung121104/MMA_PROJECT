@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,7 +18,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getAllCategories } from "../api/categories";
 import { createProduct } from "../api/products";
 import { styles } from "../styles/CreateProductScreenStyles";
-import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const CreateProductScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -51,13 +51,50 @@ const CreateProductScreen = ({ navigation }) => {
     }
   };
 
-  const updateFormData = (field, value) => {
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Product name is required";
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = "Product name must be at least 3 characters";
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
+    } else if (formData.description.trim().length < 10) {
+      newErrors.description = "Description must be at least 10 characters";
+    }
+
+    if (!formData.price.trim()) {
+      newErrors.price = "Price is required";
+    } else {
+      const price = parseFloat(formData.price);
+      if (isNaN(price) || price <= 0) {
+        newErrors.price = "Price must be a valid positive number";
+      }
+    }
+
+    if (!formData.stock.trim()) {
+      newErrors.stock = "Stock is required";
+    } else {
+      const stock = parseInt(formData.stock);
+      if (isNaN(stock) || stock < 0) {
+        newErrors.stock = "Stock must be a valid non-negative number";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
 
-    // Clear error for this field when user starts typing
+    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -66,48 +103,10 @@ const CreateProductScreen = ({ navigation }) => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Required field validations
-    if (!formData.name.trim()) {
-      newErrors.name = "Product name is required";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
-    if (
-      !formData.price ||
-      isNaN(parseFloat(formData.price)) ||
-      parseFloat(formData.price) <= 0
-    ) {
-      newErrors.price = "Price must be a valid positive number";
-    }
-
-    if (
-      !formData.stock ||
-      isNaN(parseInt(formData.stock)) ||
-      parseInt(formData.stock) < 0
-    ) {
-      newErrors.stock = "Stock must be a valid non-negative number";
-    }
-
-    if (!formData.file) {
-      newErrors.file = "Product image is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         quality: 0.8,
-        allowsEditing: true,
-        aspect: [1, 1],
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -120,14 +119,6 @@ const CreateProductScreen = ({ navigation }) => {
             name: asset.fileName || `product-${Date.now()}.jpg`,
           },
         }));
-
-        // Clear image error if it exists
-        if (errors.file) {
-          setErrors((prev) => ({
-            ...prev,
-            file: "",
-          }));
-        }
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -158,25 +149,33 @@ const CreateProductScreen = ({ navigation }) => {
         file: formData.file,
       };
 
-      console.log("📤 Creating product:", productPayload);
+      console.log("📤 Submitting product:", {
+        ...productPayload,
+        file: productPayload.file ? "Selected" : "None (will use placeholder)",
+      });
 
-      const result = await createProduct(productPayload);
+      const response = await createProduct(productPayload);
 
-      console.log("✅ Product created successfully:", result);
+      console.log("✅ Product created successfully:", response);
 
       Alert.alert("Success", "Product created successfully!", [
         {
           text: "OK",
           onPress: () => {
+            // Reset form and navigate back
+            resetForm();
             navigation.goBack();
           },
         },
       ]);
     } catch (error) {
-      console.error("❌ Create product error:", error);
+      console.error("❌ Create product error in screen:", error);
 
+      // Show detailed error message to user
       let userMessage = "Failed to create product. Please try again.";
+
       if (error.message) {
+        // Use the detailed error message from API
         userMessage = error.message;
       }
 
@@ -186,44 +185,42 @@ const CreateProductScreen = ({ navigation }) => {
     }
   };
 
-  const renderFormError = (field) => {
-    if (errors[field]) {
-      return (
-        <View style={styles.errorContainer}>
-          <FontAwesome name="exclamation-circle" size={12} color="#dc3545" />
-          <Text style={styles.errorText}>{errors[field]}</Text>
-        </View>
-      );
-    }
-    return null;
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      stock: "",
+      file: null,
+    });
+    setErrors({});
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+        style={styles.keyboardContainer}
       >
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.headerSection}>
+          <View style={styles.header}>
+            <FontAwesome name="plus-circle" size={40} color="#2a6ef7" />
             <Text style={styles.title}>Create New Product</Text>
             <Text style={styles.subtitle}>
-              Fill in the details to add a new product to your inventory
+              Add a new product to your catalog
             </Text>
           </View>
 
-          {/* Form Section */}
-          <View style={styles.formSection}>
+          {/* Form */}
+          <View style={styles.formContainer}>
             {/* Product Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Product Name <Text style={styles.required}>*</Text>
-              </Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Product Name *</Text>
               <View
                 style={[styles.inputWrapper, errors.name && styles.inputError]}
               >
@@ -234,21 +231,21 @@ const CreateProductScreen = ({ navigation }) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
-                  value={formData.name}
-                  onChangeText={(value) => updateFormData("name", value)}
+                  style={styles.textInput}
                   placeholder="Enter product name"
-                  placeholderTextColor="#999"
+                  value={formData.name}
+                  onChangeText={(value) => handleInputChange("name", value)}
+                  autoCapitalize="words"
                 />
               </View>
-              {renderFormError("name")}
+              {errors.name && (
+                <Text style={styles.errorText}>{errors.name}</Text>
+              )}
             </View>
 
             {/* Description */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Description <Text style={styles.required}>*</Text>
-              </Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Description *</Text>
               <View
                 style={[
                   styles.inputWrapper,
@@ -256,99 +253,107 @@ const CreateProductScreen = ({ navigation }) => {
                   errors.description && styles.inputError,
                 ]}
               >
-                <FontAwesome
-                  name="align-left"
-                  size={20}
-                  color="#666"
-                  style={styles.inputIcon}
-                />
                 <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={formData.description}
-                  onChangeText={(value) => updateFormData("description", value)}
+                  style={[styles.textInput, styles.textArea]}
                   placeholder="Enter product description"
-                  placeholderTextColor="#999"
+                  value={formData.description}
+                  onChangeText={(value) =>
+                    handleInputChange("description", value)
+                  }
                   multiline
                   numberOfLines={4}
+                  textAlignVertical="top"
                 />
               </View>
-              {renderFormError("description")}
+              {errors.description && (
+                <Text style={styles.errorText}>{errors.description}</Text>
+              )}
             </View>
 
-            {/* Price */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Price ($) <Text style={styles.required}>*</Text>
-              </Text>
-              <View
-                style={[styles.inputWrapper, errors.price && styles.inputError]}
-              >
-                <FontAwesome
-                  name="dollar"
-                  size={20}
-                  color="#666"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  value={formData.price}
-                  onChangeText={(value) => updateFormData("price", value)}
-                  placeholder="0.00"
-                  placeholderTextColor="#999"
-                  keyboardType="decimal-pad"
-                />
+            {/* Price & Stock Row */}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Price ($) *</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.price && styles.inputError,
+                  ]}
+                >
+                  <FontAwesome
+                    name="dollar"
+                    size={20}
+                    color="#666"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChangeText={(value) => handleInputChange("price", value)}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                {errors.price && (
+                  <Text style={styles.errorText}>{errors.price}</Text>
+                )}
               </View>
-              {renderFormError("price")}
-            </View>
 
-            {/* Stock */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Stock Quantity <Text style={styles.required}>*</Text>
-              </Text>
-              <View
-                style={[styles.inputWrapper, errors.stock && styles.inputError]}
-              >
-                <FontAwesome
-                  name="cubes"
-                  size={20}
-                  color="#666"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  value={formData.stock}
-                  onChangeText={(value) => updateFormData("stock", value)}
-                  placeholder="0"
-                  placeholderTextColor="#999"
-                  keyboardType="number-pad"
-                />
+              <View style={styles.halfInput}>
+                <Text style={styles.label}>Stock *</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.stock && styles.inputError,
+                  ]}
+                >
+                  <FontAwesome
+                    name="cubes"
+                    size={20}
+                    color="#666"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="0"
+                    value={formData.stock}
+                    onChangeText={(value) => handleInputChange("stock", value)}
+                    keyboardType="numeric"
+                  />
+                </View>
+                {errors.stock && (
+                  <Text style={styles.errorText}>{errors.stock}</Text>
+                )}
               </View>
-              {renderFormError("stock")}
             </View>
 
             {/* Category */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                <FontAwesome name="tag" size={16} color="#666" /> Category
-              </Text>
-
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Category</Text>
               {categoriesLoading ? (
-                <View style={styles.loadingContainer}>
+                <View style={styles.loadingCategory}>
                   <ActivityIndicator size="small" color="#2a6ef7" />
                   <Text style={styles.loadingText}>Loading categories...</Text>
                 </View>
               ) : (
-                <View style={styles.pickerContainer}>
+                <View style={[styles.inputWrapper, styles.pickerWrapper]}>
+                  <FontAwesome
+                    name="tag"
+                    size={20}
+                    color="#666"
+                    style={styles.inputIcon}
+                  />
                   <Picker
                     selectedValue={formData.category}
-                    onValueChange={(value) => {
-                      console.log("🔄 Category selected:", value);
-                      updateFormData("category", value);
-                    }}
                     style={styles.picker}
+                    onValueChange={(value) =>
+                      handleInputChange("category", value)
+                    }
                   >
-                    <Picker.Item label="Select Category (Optional)" value="" />
+                    <Picker.Item
+                      label="Select a category (optional)"
+                      value=""
+                    />
                     {categories.map((category) => (
                       <Picker.Item
                         key={category._id}
@@ -360,77 +365,76 @@ const CreateProductScreen = ({ navigation }) => {
                 </View>
               )}
             </View>
-          </View>
 
-          {/* Image Section */}
-          <View style={styles.imageSection}>
-            <Text style={styles.sectionTitle}>
-              Product Image <Text style={styles.required}>*</Text>
-            </Text>
-
-            {formData.file ? (
-              <View style={styles.imageContainer}>
-                <OptimizedImage
-                  source={{ uri: formData.file.uri }}
-                  style={styles.selectedImage}
-                  width={200}
-                  height={200}
-                  quality="80"
-                  fallbackText="📷"
-                />
-                <View style={styles.imageActions}>
+            {/* Image Upload */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Product Image</Text>
+              {formData.file ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image
+                    source={{ uri: formData.file.uri }}
+                    style={styles.imagePreview}
+                  />
                   <TouchableOpacity
-                    onPress={pickImage}
-                    style={[styles.imageButton, styles.changeButton]}
-                  >
-                    <FontAwesome name="camera" size={16} color="#fff" />
-                    <Text style={styles.buttonText}>Change Image</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                    style={styles.removeImageButton}
                     onPress={removeImage}
-                    style={[styles.imageButton, styles.removeButton]}
                   >
-                    <FontAwesome name="trash" size={16} color="#fff" />
-                    <Text style={styles.buttonText}>Remove</Text>
+                    <FontAwesome name="times" size={16} color="#fff" />
                   </TouchableOpacity>
                 </View>
-              </View>
-            ) : (
+              ) : (
+                <TouchableOpacity
+                  style={styles.imagePickerButton}
+                  onPress={pickImage}
+                >
+                  <FontAwesome name="camera" size={24} color="#666" />
+                  <Text style={styles.imagePickerText}>
+                    Tap to select image
+                  </Text>
+                  <Text style={styles.placeholderText}>
+                    (Placeholder image will be used if not selected)
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
-                onPress={pickImage}
-                style={[
-                  styles.imagePickerButton,
-                  errors.file && styles.imagePickerError,
-                ]}
+                style={styles.resetButton}
+                onPress={resetForm}
+                disabled={loading}
               >
-                <FontAwesome name="camera" size={32} color="#999" />
-                <Text style={styles.imagePickerText}>Select Product Image</Text>
-                <Text style={styles.imagePickerSubtext}>
-                  Tap to choose from gallery
-                </Text>
+                <FontAwesome name="refresh" size={16} color="#666" />
+                <Text style={styles.resetButtonText}>Reset</Text>
               </TouchableOpacity>
-            )}
-            {renderFormError("file")}
+
+              <TouchableOpacity
+                style={[styles.submitButton, loading && styles.disabledButton]}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <FontAwesome name="plus" size={16} color="#fff" />
+                    <Text style={styles.submitButtonText}>Create Product</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Info Card */}
+          <View style={styles.infoCard}>
+            <FontAwesome name="info-circle" size={16} color="#2a6ef7" />
+            <Text style={styles.infoText}>
+              Fill in the product details. All fields marked with * are
+              required. Images will be automatically resized and optimized.
+            </Text>
           </View>
         </ScrollView>
-
-        {/* Submit Button */}
-        <View style={styles.submitContainer}>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={[styles.submitButton, loading && styles.disabledButton]}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <FontAwesome name="plus" size={18} color="#fff" />
-                <Text style={styles.submitButtonText}>Create Product</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
