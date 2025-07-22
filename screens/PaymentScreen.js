@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PaymentScreenStyles from "../styles/PaymentScreenStyles";
@@ -14,6 +13,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { createOrder } from "../api/orders";
 import { removeMultipleFromCart } from "../api/cart";
 import { CheckBox } from "react-native-elements";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 export default function PaymentScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
@@ -23,11 +23,35 @@ export default function PaymentScreen({ navigation, route }) {
   const [selectedCartItems, setSelectedCartItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
+  // Get data from route params
+  const {
+    selectedCartItems: cartItems,
+    orderItems,
+    itemPrice,
+    tax,
+    shippingCharges,
+    totalAmount,
+    fromBuyNow,
+  } = route.params || {};
+
   useEffect(() => {
-    if (route.params?.selectedCartItems && selectedCartItems.length === 0) {
-      setSelectedCartItems(route.params.selectedCartItems);
+    if (fromBuyNow && orderItems) {
+      // Coming from Buy Now - convert orderItems to selectedCartItems format
+      const convertedItems = orderItems.map((item) => ({
+        product: {
+          _id: item.product,
+          name: item.name,
+          images: item.image ? [{ url: item.image }] : [],
+        },
+        price: item.price,
+        quantity: item.quantity,
+      }));
+      setSelectedCartItems(convertedItems);
+    } else if (cartItems && selectedCartItems.length === 0) {
+      // Coming from Cart
+      setSelectedCartItems(cartItems);
     }
-  }, [route.params?.selectedCartItems]);
+  }, [route.params]);
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -56,6 +80,12 @@ export default function PaymentScreen({ navigation, route }) {
     navigation.navigate("PaymentMethod", {
       selectedAddressIdx,
       selectedCartItems,
+      fromBuyNow,
+      orderItems,
+      itemPrice,
+      tax,
+      shippingCharges,
+      totalAmount,
     });
   };
 
@@ -68,34 +98,57 @@ export default function PaymentScreen({ navigation, route }) {
       Alert.alert("Error", "No items selected for order.");
       return;
     }
+
     setSubmitting(true);
     try {
       const shippingInfo = addresses[selectedAddressIdx];
-      const orderItems = selectedCartItems.map((item) => ({
-        name: item.product.name,
-        price: item.price,
-        quantity: item.quantity,
-        image:
-          item.product.images && item.product.images[0]
-            ? item.product.images[0].url
-            : "",
-        product: item.product._id,
-      }));
-      const selectedTotal = selectedCartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      const orderData = {
-        shippingInfo,
-        orderItems,
-        paymentMethod, // use selected payment method
-        itemPrice: selectedTotal,
-        tax: 0,
-        shippingCharges: 0,
-        totalAmount: selectedTotal,
-      };
+
+      let orderData;
+
+      if (fromBuyNow) {
+        // Use the pre-calculated values from Buy Now
+        orderData = {
+          shippingInfo,
+          orderItems: orderItems,
+          paymentMethod,
+          itemPrice: itemPrice || 0,
+          tax: tax || 0,
+          shippingCharges: shippingCharges || 0,
+          totalAmount: totalAmount || 0,
+        };
+      } else {
+        // Calculate from cart items
+        const orderItemsFromCart = selectedCartItems.map((item) => ({
+          name: item.product.name,
+          price: item.price,
+          quantity: item.quantity,
+          image:
+            item.product.images && item.product.images[0]
+              ? item.product.images[0].url
+              : "",
+          product: item.product._id,
+        }));
+
+        const selectedTotal = selectedCartItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+
+        orderData = {
+          shippingInfo,
+          orderItems: orderItemsFromCart,
+          paymentMethod,
+          itemPrice: selectedTotal,
+          tax: 0,
+          shippingCharges: 0,
+          totalAmount: selectedTotal,
+        };
+      }
+
       await createOrder(orderData);
-      if (selectedCartItems.length > 0) {
+
+      // Only remove from cart if this was a cart purchase (not Buy Now)
+      if (!fromBuyNow && selectedCartItems.length > 0) {
         try {
           const itemsToRemove = selectedCartItems.map((item) => ({
             productId: item.product._id,
@@ -109,6 +162,7 @@ export default function PaymentScreen({ navigation, route }) {
           );
         }
       }
+
       Alert.alert("Success", "Order placed successfully!");
       navigation.navigate("MainTabs", { screen: "Orders" });
     } catch (err) {
@@ -130,10 +184,14 @@ export default function PaymentScreen({ navigation, route }) {
   }
 
   const selectedAddress = addresses[selectedAddressIdx];
-  const selectedTotal = selectedCartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+
+  // Calculate total based on source
+  const selectedTotal = fromBuyNow
+    ? totalAmount || 0
+    : selectedCartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
 
   return (
     <View style={PaymentScreenStyles.container}>
@@ -217,17 +275,23 @@ export default function PaymentScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Product List (grouped by shop if needed) */}
+        {/* Product List */}
         <View style={PaymentScreenStyles.shopCard}>
           {selectedCartItems.map((item, idx) => (
             <View key={idx} style={PaymentScreenStyles.productRow}>
-              <Image
+              <OptimizedImage
                 source={{
                   uri:
                     item.product.images?.[0]?.url ||
                     "https://via.placeholder.com/100x100?text=No+Image",
                 }}
                 style={PaymentScreenStyles.productImage}
+                width={100}
+                height={100}
+                quality="70"
+                fallbackText={
+                  item.product.name?.charAt(0)?.toUpperCase() || "P"
+                }
               />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={PaymentScreenStyles.productName}>
@@ -260,27 +324,6 @@ export default function PaymentScreen({ navigation, route }) {
           ))}
         </View>
 
-        {/* Options Section (placeholders) */}
-        {/* <View style={PaymentScreenStyles.optionsCard}>
-          <View style={PaymentScreenStyles.optionsRow}>
-            <CheckBox checked={false} onPress={() => {}} containerStyle={{ padding: 0, margin: 0 }} />
-            <Text style={PaymentScreenStyles.optionsText}>Consumer Protection Insurance</Text>
-            <Text style={PaymentScreenStyles.optionsPrice}>$999 x1</Text>
-          </View>
-        </View> */}
-        {/* <TouchableOpacity style={PaymentScreenStyles.optionsRow}>
-          <Text style={PaymentScreenStyles.optionsText}>Shop Voucher</Text>
-          <FontAwesome name="angle-right" size={18} color="#888" />
-        </TouchableOpacity>
-        <TouchableOpacity style={PaymentScreenStyles.optionsRow}>
-          <Text style={PaymentScreenStyles.optionsText}>Message</Text>
-          <FontAwesome name="angle-right" size={18} color="#888" />
-        </TouchableOpacity>
-        <TouchableOpacity style={PaymentScreenStyles.optionsRow}>
-          <Text style={PaymentScreenStyles.optionsText}>Shipping Option</Text>
-          <FontAwesome name="angle-right" size={18} color="#888" />
-        </TouchableOpacity> */}
-
         {/* Order Summary */}
         <View style={PaymentScreenStyles.orderSummaryRow}>
           <Text style={PaymentScreenStyles.orderSummaryLabel}>
@@ -307,7 +350,6 @@ export default function PaymentScreen({ navigation, route }) {
             <Text style={PaymentScreenStyles.fixedPayButtonTotal}>
               ${selectedTotal.toLocaleString()}
             </Text>
-            {/* <Text style={PaymentScreenStyles.fixedPayButtonSaved}>Saved $0</Text> */}
           </View>
           <TouchableOpacity
             style={PaymentScreenStyles.fixedPayButton}

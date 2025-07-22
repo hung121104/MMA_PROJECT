@@ -47,7 +47,7 @@ export default function AdminHomeScreen() {
           orderList.forEach((order) => {
             if (
               order.paymentStatus === "paid" ||
-              order.orderStatus === "deliverd"
+              order.orderStatus === "delivered"
             ) {
               totalRevenue += order.totalAmount || 0;
             }

@@ -25,39 +25,58 @@ export default function ProductCard({ product }) {
     return stars;
   };
 
+  const isOutOfStock = !product.stock || product.stock <= 0;
+
   return (
     <View style={styles.card}>
       {product.images && product.images[0] && (
-        <OptimizedImage
-          source={{ uri: product.images[0].url }}
-          style={styles.image}
-          width={180}
-          height={120}
-          quality="80"
-          fallbackText="Product"
-        />
+        <View style={styles.imageContainer}>
+          <OptimizedImage
+            source={{ uri: product.images[0].url }}
+            style={[styles.image, isOutOfStock && styles.imageOutOfStock]}
+            width={180}
+            height={120}
+            quality="80"
+            fallbackText="Product"
+          />
+          {isOutOfStock && (
+            <View style={styles.outOfStockOverlay}>
+              <Text style={styles.outOfStockText}>Out of Stock</Text>
+            </View>
+          )}
+        </View>
       )}
-      <View style={styles.content}>
+      <View style={[styles.content, isOutOfStock && styles.contentOutOfStock]}>
         {/* Title */}
-        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+        <Text
+          style={[styles.title, isOutOfStock && styles.textOutOfStock]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {product.name || ""}
         </Text>
         {/* Description (always reserve 2 lines) */}
-        <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+        <Text
+          style={[styles.description, isOutOfStock && styles.textOutOfStock]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {product.description || " "}
         </Text>
         {/* Price Row (always reserve space) */}
         <View style={styles.priceRow}>
-          <Text style={styles.price}>
+          <Text style={[styles.price, isOutOfStock && styles.textOutOfStock]}>
             {product.price ? `$${product.price}` : " "}
           </Text>
         </View>
         {/* Rating and review count (always reserve space) */}
         <View style={styles.ratingRow}>
-          {renderStars()}
-          <Text style={styles.reviewCount}>
+          {/* {renderStars()} */}
+          {/* <Text
+            style={[styles.reviewCount, isOutOfStock && styles.textOutOfStock]}
+          >
             {product.numReviews !== undefined ? product.numReviews : " "}
-          </Text>
+          </Text> */}
         </View>
       </View>
     </View>
@@ -78,14 +97,44 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
+  imageContainer: {
+    position: "relative",
+    width: "100%",
+    height: 120,
+  },
   image: {
     width: "100%",
     height: 120,
+  },
+  imageOutOfStock: {
+    opacity: 0.5,
+  },
+  outOfStockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(128, 128, 128, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  outOfStockText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   content: {
     padding: 12,
     flex: 1,
     justifyContent: "flex-start",
+  },
+  contentOutOfStock: {
+    opacity: 0.6,
   },
   title: {
     fontWeight: "bold",
@@ -133,5 +182,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#888",
     marginLeft: 6,
+  },
+  textOutOfStock: {
+    color: "#999",
   },
 });

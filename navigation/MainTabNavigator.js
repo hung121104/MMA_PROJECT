@@ -16,6 +16,7 @@ import PaymentMethodScreen from "../screens/AdressManagingScreen";
 import PaymentWithStripeScreen from "../screens/PaymentWithStripeScreen";
 import UpdatePasswordScreen from "../screens/UpdatePassword";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+import OrderDetailScreen from "../screens/OrderDetailScreen"; // Add this import
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -84,15 +85,41 @@ function MainTabNavigator({ onLogout }) {
         children={(props) => <TabNavigator {...props} onLogout={onLogout} />}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-      <Stack.Screen name="Payment" component={PaymentScreen} />
-      <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{ title: "Product Details" }}
+      />
+      <Stack.Screen
+        name="Payment"
+        component={PaymentScreen}
+        options={{ title: "Payment" }}
+      />
+      <Stack.Screen
+        name="PaymentMethod"
+        component={PaymentMethodScreen}
+        options={{ title: "Payment Method" }}
+      />
       <Stack.Screen
         name="PaymentWithStripeScreen"
         component={PaymentWithStripeScreen}
+        options={{ title: "Complete Payment" }}
       />
-      <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen
+        name="UpdatePassword"
+        component={UpdatePasswordScreen}
+        options={{ title: "Update Password" }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+        options={{ title: "Forgot Password" }}
+      />
+      <Stack.Screen
+        name="OrderDetail"
+        component={OrderDetailScreen}
+        options={{ title: "Order Details" }}
+      />
     </Stack.Navigator>
   );
 }

@@ -63,7 +63,7 @@ export default function AdminOrderDetailScreen({ route }) {
       else if (order.orderStatus === "shipped")
         setOrder({
           ...order,
-          orderStatus: "deliverd",
+          orderStatus: "delivered",
           deliveredAt: new Date().toISOString(),
         });
     } catch (error) {
@@ -245,10 +245,10 @@ export default function AdminOrderDetailScreen({ route }) {
       <View style={{ marginHorizontal: 16, marginBottom: 10 }}>
         <TouchableOpacity
           onPress={handleUpdateStatus}
-          disabled={loading || order.orderStatus === "deliverd"}
+          disabled={loading || order.orderStatus === "delivered"}
           style={{
             backgroundColor:
-              loading || order.orderStatus === "deliverd" ? "#aaa" : "#2a6ef7",
+              loading || order.orderStatus === "delivered" ? "#aaa" : "#2a6ef7",
             paddingVertical: 12,
             borderRadius: 14,
             alignItems: "center",
