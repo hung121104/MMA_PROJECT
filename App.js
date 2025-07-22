@@ -31,6 +31,8 @@ import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import UpdatePasswordScreen from "./screens/UpdatePassword";
 
 import { getToken, getUserRole } from "./api/auth";
+import AdminOrderDetailScreen from "./screens/AdminOrderDetailScreen";
+import AdminOrdersScreen from "./screens/AdminOrderScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -91,6 +93,7 @@ function AdminTabNavigator({ onLogout }) {
           if (route.name === "AdminHome") iconName = "dashboard";
           else if (route.name === "Categories") iconName = "list";
           else if (route.name === "Products") iconName = "shopping-bag";
+          else if (route.name === "Orders") iconName = "first-order";
           else if (route.name === "Profile") iconName = "user";
           return (
             <FontAwesome name={iconName} size={size || 22} color={color} />
@@ -116,6 +119,11 @@ function AdminTabNavigator({ onLogout }) {
       <Tab.Screen
         name="Profile"
         children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
+      />
+      <Tab.Screen
+        name="AdminOrders"
+        component={AdminOrdersScreen} // Đổi component thành của admin
+        options={{ title: "Orders" }}
       />
     </Tab.Navigator>
   );
@@ -217,6 +225,12 @@ export default function App() {
                       component={EditProductScreen}
                       options={{ title: "Edit Product" }}
                     />
+                    <Stack.Screen
+                      name="AdminOrderDetail"
+                      component={AdminOrderDetailScreen}
+                      options={{ title: "Chi tiết đơn hàng" }}
+                    />
+                    {/* Add other admin screens here if needed */}
                   </>
                 ) : (
                   <>
