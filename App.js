@@ -93,7 +93,7 @@ function AdminTabNavigator({ onLogout }) {
           if (route.name === "AdminHome") iconName = "dashboard";
           else if (route.name === "Categories") iconName = "list";
           else if (route.name === "Products") iconName = "shopping-bag";
-          else if (route.name === "Orders") iconName = "first-order";
+          else if (route.name === "AdminOrders") iconName = "first-order";
           else if (route.name === "Profile") iconName = "user";
           return (
             <FontAwesome name={iconName} size={size || 22} color={color} />
@@ -122,7 +122,7 @@ function AdminTabNavigator({ onLogout }) {
       />
       <Tab.Screen
         name="AdminOrders"
-        component={AdminOrdersScreen} // Đổi component thành của admin
+        component={AdminOrdersScreen}
         options={{ title: "Orders" }}
       />
     </Tab.Navigator>
