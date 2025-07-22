@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getAllCategories } from "../api/categories";
 import { updateProduct, updateProductImage } from "../api/products";
 import { styles } from "../styles/EditProductScreenStyles";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const EditProductScreen = ({ navigation, route }) => {
   const { product } = route.params;
@@ -243,8 +243,6 @@ const EditProductScreen = ({ navigation, route }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        {/* Header */}
-
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -255,10 +253,13 @@ const EditProductScreen = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Current Product</Text>
             <View style={styles.currentProductInfo}>
               {product?.images && product.images.length > 0 && (
-                <Image
+                <OptimizedImage
                   source={{ uri: product.images[0].url }}
                   style={styles.currentProductImage}
-                  resizeMode="cover"
+                  width={80}
+                  height={80}
+                  quality="75"
+                  fallbackText="📦"
                 />
               )}
               <View style={styles.currentProductDetails}>
@@ -442,10 +443,13 @@ const EditProductScreen = ({ navigation, route }) => {
             {/* New Image Selection */}
             {formData.file ? (
               <View style={styles.imageContainer}>
-                <Image
+                <OptimizedImage
                   source={{ uri: formData.file.uri }}
                   style={styles.selectedImage}
-                  resizeMode="cover"
+                  width={200}
+                  height={200}
+                  quality="80"
+                  fallbackText="📷"
                 />
                 <View style={styles.imageActions}>
                   <TouchableOpacity
