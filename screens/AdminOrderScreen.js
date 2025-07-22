@@ -6,13 +6,13 @@ import {
   ActivityIndicator,
   StyleSheet,
   RefreshControl,
-  Image,
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getOrders } from "../api/orders";
 import moment from "moment";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const statusColors = {
   pending: "#f5a623",
@@ -81,7 +81,14 @@ export default function AdminOrdersScreen() {
 
   const renderOrderItem = (orderItem) => (
     <View key={orderItem._id} style={styles.productRow}>
-      <Image source={{ uri: orderItem.image }} style={styles.productImage} />
+      <OptimizedImage
+        source={{ uri: orderItem.image }}
+        style={styles.productImage}
+        width={48}
+        height={48}
+        quality="60"
+        fallbackText="📦"
+      />
       <View style={{ flex: 1 }}>
         <Text style={{ fontWeight: "bold" }} numberOfLines={1}>
           {orderItem.name}

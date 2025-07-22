@@ -13,14 +13,15 @@ import {
 import AdressManagingScreenStyles from "../styles/AdressManagingScreenStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome } from "@expo/vector-icons";
-import * as yup from 'yup';
-import useFormValidation from '../hook/useFormValidation';
-import FormError from '../components/common/FormError';
+import * as yup from "yup";
+import useFormValidation from "../hook/useFormValidation";
+import FormError from "../components/common/FormError";
 
 const addressSchema = yup.object().shape({
-  address: yup.string().required('Address is required'),
-  city: yup.string().required('City is required'),
-  country: yup.string().required('Country is required'),
+  address: yup.string().required("Address is required"),
+  city: yup.string().required("City is required"),
+  country: yup.string().required("Country is required"),
+  phone: yup.string().required("Phone number is required"),
 });
 
 export default function AdressManagingScreen({ navigation, route }) {
@@ -30,13 +31,18 @@ export default function AdressManagingScreen({ navigation, route }) {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const form = useFormValidation(
-    { address: '', city: '', country: 'Vietnam' },
+    { address: "", city: "", country: "Vietnam", phone: "" },
     addressSchema,
     async (values) => {
       if (isEditMode) {
         const updated = addresses.map((addr, idx) =>
           idx === selectedIdx
-            ? { address: values.address, city: values.city, country: values.country }
+            ? {
+                address: values.address,
+                city: values.city,
+                country: values.country,
+                phone: values.phone,
+              }
             : addr
         );
         await AsyncStorage.setItem("userAddresses", JSON.stringify(updated));
@@ -44,14 +50,19 @@ export default function AdressManagingScreen({ navigation, route }) {
       } else {
         const updated = [
           ...addresses,
-          { address: values.address, city: values.city, country: values.country },
+          {
+            address: values.address,
+            city: values.city,
+            country: values.country,
+            phone: values.phone,
+          },
         ];
         await AsyncStorage.setItem("userAddresses", JSON.stringify(updated));
         setAddresses(updated);
         setSelectedIdx(updated.length - 1);
       }
       setShowAddModal(false);
-      form.setValues({ address: '', city: '', country: 'Vietnam' });
+      form.setValues({ address: "", city: "", country: "Vietnam", phone: "" });
       setIsEditMode(false);
     }
   );
@@ -74,8 +85,9 @@ export default function AdressManagingScreen({ navigation, route }) {
   const handleEditAddress = (idx) => {
     form.setValues({
       address: addresses[idx].address,
-      city: addresses[idx].city || '',
-      country: addresses[idx].country || 'Vietnam',
+      city: addresses[idx].city || "",
+      country: addresses[idx].country || "Vietnam",
+      phone: addresses[idx].phone || "",
     });
     setShowAddModal(true);
     setIsEditMode(true);
@@ -107,7 +119,7 @@ export default function AdressManagingScreen({ navigation, route }) {
   };
 
   const handleShowAddModal = () => {
-    form.setValues({ address: '', city: '', country: 'Vietnam' });
+    form.setValues({ address: "", city: "", country: "Vietnam", phone: "" });
     setShowAddModal(true);
     setIsEditMode(false);
   };
@@ -155,10 +167,7 @@ export default function AdressManagingScreen({ navigation, route }) {
                     color: index === selectedIdx ? "#111" : "#333",
                   }}
                 >
-                  {item.name}
-                </Text>
-                <Text style={{ color: "#888", marginLeft: 8, fontSize: 14 }}>
-                  | {item.phone}
+                  Phone: {item.phone}
                 </Text>
                 <TouchableOpacity
                   onPress={() => handleEditAddress(index)}
@@ -210,6 +219,8 @@ export default function AdressManagingScreen({ navigation, route }) {
           </Text>
         }
       />
+
+      {/* Add Address Button */}
       <TouchableOpacity
         style={{
           flexDirection: "row",
@@ -229,6 +240,7 @@ export default function AdressManagingScreen({ navigation, route }) {
           Add a new address
         </Text>
       </TouchableOpacity>
+
       {/* Select Button */}
       <TouchableOpacity
         style={{
@@ -245,6 +257,8 @@ export default function AdressManagingScreen({ navigation, route }) {
           Select
         </Text>
       </TouchableOpacity>
+
+      {/* Add/Edit Modal */}
       <Modal visible={showAddModal} animationType="slide">
         <View
           style={{
@@ -261,7 +275,7 @@ export default function AdressManagingScreen({ navigation, route }) {
               padding: 24,
               width: "100%",
               maxWidth: 400,
-              minHeight: 320,
+              minHeight: 380,
               maxHeight: Dimensions.get("window").height * 0.9,
             }}
           >
@@ -274,30 +288,44 @@ export default function AdressManagingScreen({ navigation, route }) {
               >
                 {isEditMode ? "Edit Address" : "Add Address"}
               </Text>
+
+              <TextInput
+                placeholder="Phone Number"
+                value={form.values.phone}
+                onChangeText={(text) => form.handleChange("phone", text)}
+                style={[AdressManagingScreenStyles.input, { width: "100%" }]}
+                onBlur={() => form.validate()}
+                keyboardType="phone-pad"
+              />
+              <FormError error={form.errors.phone} />
+
               <TextInput
                 placeholder="Address"
                 value={form.values.address}
-                onChangeText={text => form.handleChange('address', text)}
+                onChangeText={(text) => form.handleChange("address", text)}
                 style={[AdressManagingScreenStyles.input, { width: "100%" }]}
                 onBlur={() => form.validate()}
               />
               <FormError error={form.errors.address} />
+
               <TextInput
                 placeholder="City"
                 value={form.values.city}
-                onChangeText={text => form.handleChange('city', text)}
+                onChangeText={(text) => form.handleChange("city", text)}
                 style={[AdressManagingScreenStyles.input, { width: "100%" }]}
                 onBlur={() => form.validate()}
               />
               <FormError error={form.errors.city} />
+
               <TextInput
                 placeholder="Country"
                 value={form.values.country}
-                onChangeText={text => form.handleChange('country', text)}
+                onChangeText={(text) => form.handleChange("country", text)}
                 style={[AdressManagingScreenStyles.input, { width: "100%" }]}
                 onBlur={() => form.validate()}
               />
               <FormError error={form.errors.country} />
+
               <View
                 style={{
                   flexDirection: "row",
@@ -314,9 +342,7 @@ export default function AdressManagingScreen({ navigation, route }) {
                 >
                   <Text style={{ color: "#888", fontSize: 16 }}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={form.handleSubmit}
-                >
+                <TouchableOpacity onPress={form.handleSubmit}>
                   <Text
                     style={{
                       color: "#2563eb",
