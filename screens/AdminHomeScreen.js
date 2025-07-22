@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -15,6 +14,7 @@ import { BarChart } from "react-native-chart-kit";
 import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getOrders } from "../api/orders";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -209,9 +209,13 @@ export default function AdminHomeScreen() {
                 renderItem={({ item }) => (
                   <View style={styles.topProductBox}>
                     {item.image ? (
-                      <Image
+                      <OptimizedImage
                         source={{ uri: item.image }}
                         style={styles.topProductImage}
+                        width={56}
+                        height={56}
+                        quality="70"
+                        fallbackText="📦"
                       />
                     ) : (
                       <View style={styles.topProductImgPlaceholder} />
