@@ -17,6 +17,7 @@ import PaymentWithStripeScreen from "../screens/PaymentWithStripeScreen";
 import UpdatePasswordScreen from "../screens/UpdatePassword";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import OrderDetailScreen from "../screens/OrderDetailScreen"; // Add this import
+import GeminiChat from "../screens/GeminiChat";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -50,6 +51,7 @@ function TabNavigator({ onLogout }) {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
+      <Tab.Screen name="Chat Box" component={GeminiChat} />
       <Tab.Screen
         name="Profile"
         children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
