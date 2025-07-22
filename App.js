@@ -1,29 +1,34 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
+import { FontAwesome } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, View, RefreshControl } from "react-native";
-import { FontAwesome } from '@expo/vector-icons';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { StripeProvider } from '@stripe/stripe-react-native';
-import { STRIPE_PUBLISHABLE_KEY } from './config/stripe';
+import { StripeProvider } from "@stripe/stripe-react-native";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { STRIPE_PUBLISHABLE_KEY } from "./config/stripe";
 
-import HomeScreen from "./screens/HomeScreen";
-import ProductListScreen from "./screens/ProductListScreen";
-import ProductDetailScreen from "./screens/ProductDetailScreen";
-import CartScreen from "./screens/CartScreen";
-import OrdersScreen from "./screens/OrdersScreen";
-import LoginScreen from "./screens/LoginScreen";
-import ProfileScreen from "./screens/ProfileScreen";
+import AdminHomeScreen from "./screens/AdminHomeScreen";
 import PaymentMethodScreen from "./screens/AdressManagingScreen";
+import CartScreen from "./screens/CartScreen";
+import CategoriesScreen from "./screens/CategoriesScreen";
+import CreateCategoryScreen from "./screens/CreateCategoryScreen";
+import CreateProductScreen from "./screens/CreateProductScreen";
+import EditProductScreen from "./screens/EditProductScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import HomeScreen from "./screens/HomeScreen";
+import LoginScreen from "./screens/LoginScreen";
+import OrdersScreen from "./screens/OrdersScreen";
 import PaymentScreen from "./screens/PaymentScreen";
 import PaymentWithStripeScreen from "./screens/PaymentWithStripeScreen";
+import ProductDetailScreen from "./screens/ProductDetailScreen";
+import ProductListScreen from "./screens/ProductListScreen";
+import ProductsScreen from "./screens/ProductsScreen";
+import ProfileScreen from "./screens/ProfileScreen";
 import RegisterScreen from "./screens/RegisterScreen";
-import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import UpdatePasswordScreen from "./screens/UpdatePassword";
-import AdminHomeScreen from "./screens/AdminHomeScreen";
 
 import { getToken, getUserRole } from "./api/auth";
 
@@ -36,8 +41,8 @@ function MainTabNavigator({ onLogout }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#2a6ef7',
-        tabBarInactiveTintColor: '#888',
+        tabBarActiveTintColor: "#2a6ef7",
+        tabBarInactiveTintColor: "#888",
         tabBarStyle: {
           height: 60,
           paddingBottom: 6,
@@ -45,12 +50,14 @@ function MainTabNavigator({ onLogout }) {
         },
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
-          if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'Wishlist') iconName = 'heart';
-          else if (route.name === 'Cart') iconName = 'shopping-cart';
-          else if (route.name === 'Orders') iconName = 'list-alt';
-          else if (route.name === 'Profile') iconName = 'user';
-          return <FontAwesome name={iconName} size={size || 22} color={color} />;
+          if (route.name === "Home") iconName = "home";
+          else if (route.name === "Wishlist") iconName = "heart";
+          else if (route.name === "Cart") iconName = "shopping-cart";
+          else if (route.name === "Orders") iconName = "list-alt";
+          else if (route.name === "Profile") iconName = "user";
+          return (
+            <FontAwesome name={iconName} size={size || 22} color={color} />
+          );
         },
       })}
     >
@@ -72,8 +79,8 @@ function AdminTabNavigator({ onLogout }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#2a6ef7',
-        tabBarInactiveTintColor: '#888',
+        tabBarActiveTintColor: "#2a6ef7",
+        tabBarInactiveTintColor: "#888",
         tabBarStyle: {
           height: 60,
           paddingBottom: 6,
@@ -81,14 +88,35 @@ function AdminTabNavigator({ onLogout }) {
         },
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
-          if (route.name === 'AdminHome') iconName = 'dashboard';
-          else if (route.name === 'Profile') iconName = 'user';
-          return <FontAwesome name={iconName} size={size || 22} color={color} />;
+          if (route.name === "AdminHome") iconName = "dashboard";
+          else if (route.name === "Categories") iconName = "list";
+          else if (route.name === "Products") iconName = "shopping-bag";
+          else if (route.name === "Profile") iconName = "user";
+          return (
+            <FontAwesome name={iconName} size={size || 22} color={color} />
+          );
         },
       })}
     >
-      <Tab.Screen name="AdminHome" component={AdminHomeScreen} options={{ title: 'Dashboard' }} />
-      <Tab.Screen name="Profile" children={(props) => <ProfileScreen {...props} onLogout={onLogout} />} />
+      <Tab.Screen
+        name="AdminHome"
+        component={AdminHomeScreen}
+        options={{ title: "Dashboard" }}
+      />
+      <Tab.Screen
+        name="Categories"
+        component={CategoriesScreen}
+        options={{ title: "Categories" }}
+      />
+      <Tab.Screen
+        name="Products"
+        component={ProductsScreen}
+        options={{ title: "Products" }}
+      />
+      <Tab.Screen
+        name="Profile"
+        children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
+      />
     </Tab.Navigator>
   );
 }
@@ -123,7 +151,9 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" />
           </View>
         </SafeAreaView>
@@ -167,26 +197,58 @@ export default function App() {
                   <>
                     <Stack.Screen
                       name="AdminTabs"
-                      children={(props) => <AdminTabNavigator {...props} onLogout={handleLogout} />}
+                      children={(props) => (
+                        <AdminTabNavigator {...props} onLogout={handleLogout} />
+                      )}
                       options={{ headerShown: false }}
                     />
-                    {/* Add other admin screens here if needed */}
+                    <Stack.Screen
+                      name="CreateCategory"
+                      component={CreateCategoryScreen}
+                      options={{ title: "Create Category" }}
+                    />
+                    <Stack.Screen
+                      name="CreateProduct"
+                      component={CreateProductScreen}
+                      options={{ title: "Create Product" }}
+                    />
+                    <Stack.Screen
+                      name="EditProduct"
+                      component={EditProductScreen}
+                      options={{ title: "Edit Product" }}
+                    />
                   </>
                 ) : (
-                <>
-                  <Stack.Screen
-                    name="MainTabs"
-                    children={(props) => <MainTabNavigator {...props} onLogout={handleLogout} />}
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-                  <Stack.Screen name="Payment" component={PaymentScreen} />
-                  <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
-                  <Stack.Screen name="PaymentWithStripeScreen" component={PaymentWithStripeScreen} />
-                  <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
-                  <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-
-                </>
+                  <>
+                    <Stack.Screen
+                      name="MainTabs"
+                      children={(props) => (
+                        <MainTabNavigator {...props} onLogout={handleLogout} />
+                      )}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="ProductDetail"
+                      component={ProductDetailScreen}
+                    />
+                    <Stack.Screen name="Payment" component={PaymentScreen} />
+                    <Stack.Screen
+                      name="PaymentMethod"
+                      component={PaymentMethodScreen}
+                    />
+                    <Stack.Screen
+                      name="PaymentWithStripeScreen"
+                      component={PaymentWithStripeScreen}
+                    />
+                    <Stack.Screen
+                      name="UpdatePassword"
+                      component={UpdatePasswordScreen}
+                    />
+                    <Stack.Screen
+                      name="ForgotPassword"
+                      component={ForgotPasswordScreen}
+                    />
+                  </>
                 )
               ) : (
                 <>
@@ -202,8 +264,14 @@ export default function App() {
                     )}
                   </Stack.Screen>
                   <Stack.Screen name="Register" component={RegisterScreen} />
-                  <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-                  <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                  <Stack.Screen
+                    name="ForgotPassword"
+                    component={ForgotPasswordScreen}
+                  />
+                  <Stack.Screen
+                    name="ResetPassword"
+                    component={ResetPasswordScreen}
+                  />
                 </>
               )}
             </Stack.Navigator>

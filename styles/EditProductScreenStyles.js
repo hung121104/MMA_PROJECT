@@ -1,0 +1,298 @@
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width } = Dimensions.get("window");
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+  },
+  headerPlaceholder: {
+    width: 36,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 100,
+  },
+  currentProductSection: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 12,
+  },
+  currentProductInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  currentProductImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  currentProductDetails: {
+    flex: 1,
+  },
+  currentProductName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  currentProductPrice: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#28a745",
+  },
+  formSection: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 8,
+  },
+  required: {
+    color: "#dc3545",
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#1a1a1a",
+    padding: 0,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    paddingHorizontal: 14,
+    minHeight: 48,
+  },
+  textAreaWrapper: {
+    alignItems: "flex-start",
+    paddingVertical: 12,
+    minHeight: 100,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  inputError: {
+    borderColor: "#dc3545",
+    backgroundColor: "#fff5f5",
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: "top",
+  },
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#dc3545",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  pickerContainer: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    overflow: "hidden",
+  },
+  picker: {
+    color: "#1a1a1a",
+  },
+  currentCategoryContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: "#e7f3ff",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#2a6ef7",
+  },
+  currentCategoryLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
+  currentCategoryValue: {
+    fontSize: 14,
+    color: "#2a6ef7",
+    fontWeight: "600",
+  },
+  imageSection: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageContainer: {
+    alignItems: "center",
+    gap: 16,
+  },
+  selectedImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+  },
+  imageActions: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  imageButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 6,
+  },
+  updateButton: {
+    backgroundColor: "#28a745",
+  },
+  removeButton: {
+    backgroundColor: "#dc3545",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  imagePickerButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: "#e9ecef",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    backgroundColor: "#f8f9fa",
+  },
+  imagePickerText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  imagePickerSubtext: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#999",
+  },
+  submitContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e9ecef",
+  },
+  submitButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2a6ef7",
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+});

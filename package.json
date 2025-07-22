@@ -25,7 +25,9 @@
     "react-native-elements": "^3.4.3",
     "react-native-safe-area-context": "5.4.0",
     "tailwindcss-react-native": "^1.7.10",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "expo-image-picker": "~16.1.4",
+    "expo-file-system": "~18.1.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
