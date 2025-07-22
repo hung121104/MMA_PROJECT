@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   RefreshControl,
   Text,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { deleteProduct, getAllProducts } from "../api/products";
 import { styles } from "../styles/ProductsScreenStyles";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const ProductsScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
@@ -126,10 +126,13 @@ const ProductsScreen = ({ navigation }) => {
         {/* Product Image */}
         <View style={styles.imageContainer}>
           {item.images && item.images.length > 0 ? (
-            <Image
+            <OptimizedImage
               source={{ uri: item.images[0].url }}
               style={styles.productImage}
-              resizeMode="cover"
+              width={80}
+              height={80}
+              quality="70"
+              fallbackText="📦"
             />
           ) : (
             <View style={styles.placeholderImage}>

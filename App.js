@@ -93,7 +93,7 @@ function AdminTabNavigator({ onLogout }) {
           if (route.name === "AdminHome") iconName = "dashboard";
           else if (route.name === "Categories") iconName = "list";
           else if (route.name === "Products") iconName = "shopping-bag";
-          else if (route.name === "Orders") iconName = "first-order";
+          else if (route.name === "AdminOrders") iconName = "list-alt";
           else if (route.name === "Profile") iconName = "user";
           return (
             <FontAwesome name={iconName} size={size || 22} color={color} />
@@ -117,13 +117,13 @@ function AdminTabNavigator({ onLogout }) {
         options={{ title: "Products" }}
       />
       <Tab.Screen
-        name="Profile"
-        children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
+        name="AdminOrders"
+        component={AdminOrdersScreen}
+        options={{ title: "Orders" }}
       />
       <Tab.Screen
-        name="AdminOrders"
-        component={AdminOrdersScreen} // Đổi component thành của admin
-        options={{ title: "Orders" }}
+        name="Profile"
+        children={(props) => <ProfileScreen {...props} onLogout={onLogout} />}
       />
     </Tab.Navigator>
   );
