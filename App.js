@@ -1,33 +1,38 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
+import { FontAwesome } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivityIndicator, View, RefreshControl } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { STRIPE_PUBLISHABLE_KEY } from "./config/stripe";
 
-import HomeScreen from "./screens/HomeScreen";
-import ProductListScreen from "./screens/ProductListScreen";
-import ProductDetailScreen from "./screens/ProductDetailScreen";
-import CartScreen from "./screens/CartScreen";
-import OrdersScreen from "./screens/OrdersScreen";
-import LoginScreen from "./screens/LoginScreen";
-import ProfileScreen from "./screens/ProfileScreen";
+import AdminHomeScreen from "./screens/AdminHomeScreen";
 import PaymentMethodScreen from "./screens/AdressManagingScreen";
+import CartScreen from "./screens/CartScreen";
+import CategoriesScreen from "./screens/CategoriesScreen";
+import CreateCategoryScreen from "./screens/CreateCategoryScreen";
+import CreateProductScreen from "./screens/CreateProductScreen";
+import EditProductScreen from "./screens/EditProductScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import HomeScreen from "./screens/HomeScreen";
+import LoginScreen from "./screens/LoginScreen";
+import OrdersScreen from "./screens/OrdersScreen";
 import PaymentScreen from "./screens/PaymentScreen";
 import PaymentWithStripeScreen from "./screens/PaymentWithStripeScreen";
+import ProductDetailScreen from "./screens/ProductDetailScreen";
+import ProductListScreen from "./screens/ProductListScreen";
+import ProductsScreen from "./screens/ProductsScreen";
+import ProfileScreen from "./screens/ProfileScreen";
 import RegisterScreen from "./screens/RegisterScreen";
-import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import UpdatePasswordScreen from "./screens/UpdatePassword";
-import AdminHomeScreen from "./screens/AdminHomeScreen";
 
 import { getToken, getUserRole } from "./api/auth";
-import AdminOrdersScreen from "./screens/AdminOrderScreen";
 import AdminOrderDetailScreen from "./screens/AdminOrderDetailScreen";
+import AdminOrdersScreen from "./screens/AdminOrderScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,6 +91,8 @@ function AdminTabNavigator({ onLogout }) {
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
           if (route.name === "AdminHome") iconName = "dashboard";
+          else if (route.name === "Categories") iconName = "list";
+          else if (route.name === "Products") iconName = "shopping-bag";
           else if (route.name === "Orders") iconName = "first-order";
           else if (route.name === "Profile") iconName = "user";
           return (
@@ -98,6 +105,16 @@ function AdminTabNavigator({ onLogout }) {
         name="AdminHome"
         component={AdminHomeScreen}
         options={{ title: "Dashboard" }}
+      />
+      <Tab.Screen
+        name="Categories"
+        component={CategoriesScreen}
+        options={{ title: "Categories" }}
+      />
+      <Tab.Screen
+        name="Products"
+        component={ProductsScreen}
+        options={{ title: "Products" }}
       />
       <Tab.Screen
         name="Profile"
@@ -192,6 +209,21 @@ export default function App() {
                         <AdminTabNavigator {...props} onLogout={handleLogout} />
                       )}
                       options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="CreateCategory"
+                      component={CreateCategoryScreen}
+                      options={{ title: "Create Category" }}
+                    />
+                    <Stack.Screen
+                      name="CreateProduct"
+                      component={CreateProductScreen}
+                      options={{ title: "Create Product" }}
+                    />
+                    <Stack.Screen
+                      name="EditProduct"
+                      component={EditProductScreen}
+                      options={{ title: "Edit Product" }}
                     />
                     <Stack.Screen
                       name="AdminOrderDetail"
