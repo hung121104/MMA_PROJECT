@@ -158,7 +158,7 @@ export default function AdminHomeScreen() {
             <Text
               style={{ fontWeight: "bold", fontSize: 18, color: "#D32F2F" }}
             >
-              Total: {item.totalAmount?.toLocaleString()}₫
+              Total: {item.totalAmount?.toLocaleString()}$
             </Text>
           </TouchableOpacity>
         )}
@@ -172,7 +172,7 @@ export default function AdminHomeScreen() {
               </View>
               <View style={[styles.statBox, { backgroundColor: "#27ae60" }]}>
                 <Text style={styles.statNumber}>
-                  {orderStats.totalRevenue.toLocaleString("en-US")}₫
+                  {orderStats.totalRevenue.toLocaleString("en-US")}$
                 </Text>
                 <Text style={styles.statLabel}>Total Revenue</Text>
               </View>

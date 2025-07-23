@@ -95,7 +95,7 @@ export default function AdminOrdersScreen() {
         </Text>
         <Text style={{ color: "#666" }}>
           Qty: {orderItem.quantity} | Price:{" "}
-          {(orderItem.price || 0).toLocaleString()}₫
+          {(orderItem.price || 0).toLocaleString()}$
         </Text>
       </View>
     </View>
@@ -160,11 +160,11 @@ export default function AdminOrdersScreen() {
 
         <View style={styles.sumRow}>
           <Text style={{ color: "#888", fontSize: 13 }}>
-            Shipping Fee: {item.shippingCharges.toLocaleString()}₫ | Tax:{" "}
-            {item.tax.toLocaleString()}₫
+            Shipping Fee: ${item.shippingCharges.toLocaleString()} | Tax: $
+            {item.tax.toLocaleString()}
           </Text>
           <Text style={styles.amountTotal}>
-            Total: {item.totalAmount.toLocaleString()}₫
+            Total: ${item.totalAmount.toLocaleString()}
           </Text>
         </View>
       </View>

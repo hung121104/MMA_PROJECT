@@ -209,7 +209,7 @@ export default function AdminOrderDetailScreen({ route }) {
                 <Text style={{ fontWeight: "bold" }}>{item.quantity}</Text>{" "}
                 Price:{" "}
                 <Text style={{ color: "#2a6ef7", fontWeight: "bold" }}>
-                  {item.price.toLocaleString()}₫
+                  {item.price.toLocaleString()}$
                 </Text>
               </Text>
             </View>
@@ -221,22 +221,22 @@ export default function AdminOrderDetailScreen({ route }) {
       <View style={styles.totalsBox}>
         <Text style={styles.totalsText}>
           Subtotal:{" "}
-          <Text style={styles.amount}>{order.itemPrice.toLocaleString()}₫</Text>
+          <Text style={styles.amount}>{order.itemPrice.toLocaleString()}$</Text>
         </Text>
         <Text style={styles.totalsText}>
           Shipping Fee:{" "}
           <Text style={styles.amount}>
-            {order.shippingCharges.toLocaleString()}₫
+            {order.shippingCharges.toLocaleString()}$
           </Text>
         </Text>
         <Text style={styles.totalsText}>
-          Tax: <Text style={styles.amount}>{order.tax.toLocaleString()}₫</Text>
+          Tax: <Text style={styles.amount}>{order.tax.toLocaleString()}$</Text>
         </Text>
         <View style={styles.line} />
         <Text style={styles.totalFinal}>
           Total:{" "}
           <Text style={styles.amountFinal}>
-            {order.totalAmount.toLocaleString()}₫
+            {order.totalAmount.toLocaleString()}$
           </Text>
         </Text>
       </View>
