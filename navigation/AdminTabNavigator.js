@@ -120,7 +120,7 @@ function AdminTabNavigator({ onLogout }) {
       <Stack.Screen
         name="AdminOrderDetail"
         component={AdminOrderDetailScreen}
-        options={{ title: "Chi tiết đơn hàng" }}
+        options={{ title: "Order detail" }}
       />
       <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
     </Stack.Navigator>
