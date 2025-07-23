@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  RefreshControl, // Add this import
 } from "react-native";
 import styles from "../styles/HomeScreenStyles";
 import GlobalStyles, { colors } from "../styles/GlobalStyles";
@@ -19,21 +20,48 @@ export default function HomeScreen({ navigation }) {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [search, setSearch] = useState(""); // Add search state
+  const [search, setSearch] = useState("");
+  const [refreshing, setRefreshing] = useState(false); // Add refreshing state
 
-  useEffect(() => {
-    const fetchCategories = async () => {
+  // Fetch data functions
+  const fetchCategories = async () => {
+    try {
       const cats = await getAllCategories();
-      setCategories(cats);
-    };
-    fetchCategories();
+      setCategories(cats || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+    }
+  };
 
-    const fetchProducts = async () => {
-      const products = await getAllProducts();
-      setProducts(products);
-    };
+  const fetchProducts = async () => {
+    try {
+      const productsData = await getAllProducts();
+      setProducts(productsData || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
+    }
+  };
+
+  // Initial data loading
+  useEffect(() => {
+    fetchCategories();
     fetchProducts();
   }, []);
+
+  // Pull to refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Fetch both categories and products
+      await Promise.all([fetchCategories(), fetchProducts()]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Filter products by selected category and search query
   const filteredProducts = products.filter((product) => {
@@ -139,12 +167,12 @@ export default function HomeScreen({ navigation }) {
       renderItem={({ item }) => (
         <TouchableOpacity
           onPress={() => navigation.navigate("ProductDetail", { id: item._id })}
-          style={{ flex: 1, margin: 4 }} // Add margin for spacing
+          style={{ flex: 1, margin: 4 }}
         >
           <ProductCard product={item} />
         </TouchableOpacity>
       )}
-      numColumns={2} // <-- Show 2 products per row
+      numColumns={2}
       ListHeaderComponent={ListHeader}
       contentContainerStyle={{
         justifyContent: "center",
@@ -153,6 +181,18 @@ export default function HomeScreen({ navigation }) {
         gap: 8,
       }}
       showsVerticalScrollIndicator={false}
+      // Add RefreshControl here
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary} // iOS spinner color
+          colors={[colors.primary]} // Android spinner colors
+          progressBackgroundColor="#ffffff" // Android background
+          title="Pull to refresh..." // iOS pull text
+          titleColor={colors.primary} // iOS text color
+        />
+      }
     />
   );
 }

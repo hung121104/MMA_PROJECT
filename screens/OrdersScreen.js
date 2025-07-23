@@ -2,12 +2,12 @@ import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { getMyOrders } from "../api/orders";
 import OrdersScreenStyles from "../styles/OrdersScreenStyles";
@@ -16,7 +16,9 @@ export default function OrdersScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("all"); // Add filter state
+  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortBy, setSortBy] = useState("date");
 
   const loadOrders = async () => {
     try {
@@ -43,7 +45,7 @@ export default function OrdersScreen({ navigation }) {
 
   const handlePayment = (order) => {
     const orderId = order._id || `order_${Date.now()}`;
-    const totalAmount = order.totalAmount; // Convert to cents
+    const totalAmount = order.totalAmount;
     navigation.navigate("PaymentWithStripeScreen", {
       orderId: orderId,
       totalAmount: totalAmount,
@@ -55,13 +57,53 @@ export default function OrdersScreen({ navigation }) {
     navigation.navigate("OrderDetail", { orderId });
   };
 
+  // Sort orders function
+  const sortOrders = (ordersToSort) => {
+    const sorted = [...ordersToSort].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case "date":
+          comparison = new Date(a.createdAt) - new Date(b.createdAt);
+          break;
+        case "amount":
+          comparison = (a.totalAmount || 0) - (b.totalAmount || 0);
+          break;
+        case "status":
+          const statusA = (a.orderStatus || a.status || "").toLowerCase();
+          const statusB = (b.orderStatus || b.status || "").toLowerCase();
+          comparison = statusA.localeCompare(statusB);
+          break;
+        default:
+          comparison = new Date(a.createdAt) - new Date(b.createdAt);
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  };
+
   // Filter orders based on selected filter
   const getFilteredOrders = () => {
-    if (selectedFilter === "all") return orders;
-    return orders.filter(
-      (order) =>
-        (order.orderStatus || order.status)?.toLowerCase() === selectedFilter
-    );
+    let filtered = orders;
+    if (selectedFilter !== "all") {
+      filtered = orders.filter(
+        (order) =>
+          (order.orderStatus || order.status)?.toLowerCase() === selectedFilter
+      );
+    }
+    return sortOrders(filtered);
+  };
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+
+  // Change sort criteria
+  const changeSortBy = (criteria) => {
+    setSortBy(criteria);
   };
 
   // Get order counts for each status
@@ -94,6 +136,13 @@ export default function OrdersScreen({ navigation }) {
     { key: "shipped", label: "Shipped", count: orderCounts.shipped },
     { key: "delivered", label: "Delivered", count: orderCounts.delivered },
     { key: "cancel", label: "Cancelled", count: orderCounts.cancel },
+  ];
+
+  // Sort options
+  const sortOptions = [
+    { key: "date", label: "Date", icon: "calendar" },
+    { key: "amount", label: "Amount", icon: "dollar" },
+    { key: "status", label: "Status", icon: "flag" },
   ];
 
   const getStatusInfo = (status) => {
@@ -209,13 +258,42 @@ export default function OrdersScreen({ navigation }) {
     );
   };
 
-  const renderOrderItem = ({ item: order }) => {
-    // Use orderStatus instead of status for better compatibility
+  const renderSortButton = (option) => {
+    const isSelected = sortBy === option.key;
+    return (
+      <TouchableOpacity
+        key={option.key}
+        style={[
+          OrdersScreenStyles.sortButton,
+          isSelected && OrdersScreenStyles.sortButtonActive,
+        ]}
+        onPress={() => changeSortBy(option.key)}
+      >
+        <FontAwesome
+          name={option.icon}
+          size={14}
+          color={isSelected ? "#0066cc" : "#666"}
+          style={{ marginRight: 4 }}
+        />
+        <Text
+          style={[
+            OrdersScreenStyles.sortButtonText,
+            isSelected && OrdersScreenStyles.sortButtonTextActive,
+          ]}
+        >
+          {option.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderOrderItem = (order, index) => {
     const statusInfo = getStatusInfo(order.orderStatus || order.status);
     const paymentStatusInfo = getPaymentStatusInfo(order.paymentStatus);
 
     return (
       <TouchableOpacity
+        key={order._id || index}
         style={OrdersScreenStyles.orderCard}
         onPress={() => handleViewOrderDetail(order._id)}
         activeOpacity={0.7}
@@ -294,7 +372,6 @@ export default function OrdersScreen({ navigation }) {
             <Text style={OrdersScreenStyles.viewButtonText}>View Details</Text>
           </TouchableOpacity>
 
-          {/* Updated condition to match your enum values */}
           {order.paymentStatus === "pending" &&
             order.paymentMethod === "ONLINE" && (
               <TouchableOpacity
@@ -338,44 +415,79 @@ export default function OrdersScreen({ navigation }) {
 
   return (
     <View style={OrdersScreenStyles.container}>
-      <View style={OrdersScreenStyles.header}>
-        <Text style={OrdersScreenStyles.headerTitle}>My Orders</Text>
-        <Text style={OrdersScreenStyles.headerSubtitle}>
-          {filteredOrders.length} of {orders.length} order
-          {orders.length !== 1 ? "s" : ""}
-        </Text>
-      </View>
-
-      {/* Filter Buttons */}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={OrdersScreenStyles.filterContainer}
-        contentContainerStyle={OrdersScreenStyles.filterContent}
-      >
-        {filterOptions.map(renderFilterButton)}
-      </ScrollView>
-
-      <FlatList
-        data={filteredOrders}
-        keyExtractor={(item) => item._id}
-        renderItem={renderOrderItem}
-        contentContainerStyle={OrdersScreenStyles.listContainer}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
-          <View style={OrdersScreenStyles.emptyFilterContainer}>
-            <Text style={OrdersScreenStyles.emptyFilterTitle}>
-              No {selectedFilter === "all" ? "" : selectedFilter} orders found
+      >
+        {/* Header */}
+        <View style={OrdersScreenStyles.header}>
+          <Text style={OrdersScreenStyles.headerTitle}>My Orders</Text>
+          <Text style={OrdersScreenStyles.headerSubtitle}>
+            {filteredOrders.length} of {orders.length} order
+            {orders.length !== 1 ? "s" : ""}
+          </Text>
+        </View>
+
+        {/* Filter Buttons */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={OrdersScreenStyles.filterContainer}
+          contentContainerStyle={OrdersScreenStyles.filterContent}
+        >
+          {filterOptions.map(renderFilterButton)}
+        </ScrollView>
+
+        {/* Sort Controls */}
+        <View style={OrdersScreenStyles.sortContainer}>
+          <Text style={OrdersScreenStyles.sortLabel}>Sort by:</Text>
+
+          {/* Sort By Options */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={OrdersScreenStyles.sortOptionsContainer}
+          >
+            {sortOptions.map(renderSortButton)}
+          </ScrollView>
+
+          {/* Sort Order Toggle */}
+          <TouchableOpacity
+            style={OrdersScreenStyles.sortOrderButton}
+            onPress={toggleSortOrder}
+          >
+            <FontAwesome
+              name={
+                sortOrder === "asc" ? "sort-amount-asc" : "sort-amount-desc"
+              }
+              size={16}
+              color="#0066cc"
+            />
+            <Text style={OrdersScreenStyles.sortOrderText}>
+              {sortOrder === "asc" ? "Ascending" : "Descending"}
             </Text>
-            <Text style={OrdersScreenStyles.emptyFilterText}>
-              Try selecting a different filter or check back later.
-            </Text>
-          </View>
-        )}
-      />
+          </TouchableOpacity>
+        </View>
+
+        {/* Orders List */}
+        <View style={OrdersScreenStyles.ordersContainer}>
+          {filteredOrders.length === 0 ? (
+            <View style={OrdersScreenStyles.emptyFilterContainer}>
+              <Text style={OrdersScreenStyles.emptyFilterTitle}>
+                No {selectedFilter === "all" ? "" : selectedFilter} orders found
+              </Text>
+              <Text style={OrdersScreenStyles.emptyFilterText}>
+                Try selecting a different filter or check back later.
+              </Text>
+            </View>
+          ) : (
+            filteredOrders.map((order, index) => renderOrderItem(order, index))
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }

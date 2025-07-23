@@ -42,6 +42,7 @@ function TabNavigator({ onLogout }) {
           else if (route.name === "Cart") iconName = "shopping-cart";
           else if (route.name === "Orders") iconName = "list-alt";
           else if (route.name === "Profile") iconName = "user";
+          else if (route.name === "Chat Box") iconName = "comment";
           return (
             <FontAwesome name={iconName} size={size || 22} color={color} />
           );

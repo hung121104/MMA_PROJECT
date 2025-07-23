@@ -273,6 +273,70 @@ const OrdersScreenStyles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
+  // New sort styles
+  sortContainer: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  sortLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginRight: 12,
+  },
+  sortOptionsContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  sortButtonActive: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#0066cc",
+  },
+  sortButtonText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
+  sortButtonTextActive: {
+    color: "#0066cc",
+    fontWeight: "600",
+  },
+  sortOrderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#0066cc",
+  },
+  sortOrderText: {
+    fontSize: 12,
+    color: "#0066cc",
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  ordersContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
 });
 
 export default OrdersScreenStyles;
