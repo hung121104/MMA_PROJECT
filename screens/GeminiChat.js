@@ -16,30 +16,31 @@ import { getAllProducts } from "../api/products";
 
 const API_KEY = GEMINI_API_KEY;
 
-const SYSTEM_PROMPT = `Bạn là trợ lý mua sắm AI. Trả về JSON với cấu trúc:
+const SYSTEM_PROMPT = `You are an AI shopping assistant. Return JSON with structure:
 {
-  "message": "Câu trả lời ngắn gọn",
+  "message": "Brief response",
   "products": [
     {
       "id": "product_id",
-      "name": "tên sản phẩm",
-      "description": "mô tả ngắn",
-      "price": giá,
-      "stock": số_lượng,
-      "category": "danh mục",
+      "name": "product name",
+      "description": "brief description",
+      "price": price,
+      "stock": quantity,
+      "category": "category",
       "images": [{"url": "link"}],
-      "rating": điểm,
-      "numReviews": số_review,
-      "relevance_reason": "lý do ngắn"
+      "rating": rating,
+      "numReviews": review_count,
+      "relevance_reason": "brief reason"
     }
   ]
 }
 
-QUAN TRỌNG:
-- CHỈ trả JSON thuần, không markdown
-- Tối đa 3 sản phẩm
-- Mô tả ngắn gọn
-- Đảm bảo JSON hoàn chỉnh`;
+
+IMPORTANT:
+- Return ONLY pure JSON, no markdown
+- Maximum 3 products
+- Keep descriptions brief
+- Ensure complete JSON`;
 
 export default function ProductChatbot({ navigation }) {
   const [inputText, setInputText] = useState("");
@@ -48,7 +49,7 @@ export default function ProductChatbot({ navigation }) {
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
 
-  // Fetch tất cả sản phẩm khi component mount
+  // Fetch all products when component mounts
   useEffect(() => {
     fetchAllProducts();
   }, []);
@@ -60,18 +61,18 @@ export default function ProductChatbot({ navigation }) {
         setLoading(false);
       });
     } catch (err) {
-      console.error("Lỗi khi fetch sản phẩm:", err);
+      console.error("Error fetching products:", err);
     }
   };
 
   const runGemini = async () => {
     if (!inputText.trim()) {
-      setError("Vui lòng nhập yêu cầu tìm kiếm.");
+      setError("Please enter a search request.");
       return;
     }
 
     if (products.length === 0) {
-      setError("Đang tải dữ liệu sản phẩm, vui lòng thử lại sau.");
+      setError("Loading product data, please try again later.");
       return;
     }
 
@@ -85,15 +86,18 @@ export default function ProductChatbot({ navigation }) {
         model: "gemini-2.5-flash",
       });
 
-      // Tạo prompt với danh sách sản phẩm
+      // Create prompt with product list
       const productsJson = JSON.stringify(products, null, 2);
       const fullPrompt = `${SYSTEM_PROMPT}
 
-        SẢN PHẨM: ${productsJson}
 
-        YÊU CẦU: "${inputText}"
+        PRODUCTS: ${productsJson}
 
-        Trả JSON hoàn chỉnh:`;
+
+        REQUEST: "${inputText}"
+
+
+        Return complete JSON:`;
 
       const result = await model.generateContent(fullPrompt);
       const response = await result.response;
@@ -114,8 +118,8 @@ export default function ProductChatbot({ navigation }) {
         });
       }
     } catch (err) {
-      console.error("Lỗi khi gọi Gemini API:", err);
-      setError("Đã xảy ra lỗi khi kết nối với AI. Vui lòng thử lại.");
+      console.error("Error calling Gemini API:", err);
+      setError("An error occurred while connecting to AI. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -145,9 +149,9 @@ export default function ProductChatbot({ navigation }) {
         <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
         <View style={styles.productMeta}>
           <Text style={styles.productRating}>
-            ⭐ {product.rating || 0} ({product.numReviews || 0} đánh giá)
+            ⭐ {product.rating || 0} ({product.numReviews || 0} reviews)
           </Text>
-          <Text style={styles.productStock}>Còn lại: {product.stock}</Text>
+          <Text style={styles.productStock}>Stock: {product.stock}</Text>
         </View>
         {product.relevance_reason && (
           <Text style={styles.relevanceReason}>
@@ -160,11 +164,11 @@ export default function ProductChatbot({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Trợ lý mua sắm AI</Text>
+      <Text style={styles.title}>AI Shopping Assistant</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Tôi đang tìm kiếm... (ví dụ: điện thoại giá rẻ, áo sơ mi nam, đồ chơi trẻ em)"
+        placeholder="I'm looking for... (e.g.: cheap phone, men's shirt, kids toys)"
         multiline
         numberOfLines={3}
         value={inputText}
@@ -177,7 +181,7 @@ export default function ProductChatbot({ navigation }) {
         disabled={loading}
       >
         <Text style={styles.sendButtonText}>
-          {loading ? "Đang tìm kiếm..." : "Tìm kiếm sản phẩm"}
+          {loading ? "Searching..." : "Search Products"}
         </Text>
       </TouchableOpacity>
 
@@ -193,17 +197,17 @@ export default function ProductChatbot({ navigation }) {
 
       {responseData && (
         <View style={styles.responseContainer}>
-          {/* Hiển thị message từ AI */}
+          {/* Display AI message */}
           <View style={styles.messageContainer}>
-            <Text style={styles.messageTitle}>💬 Trợ lý AI:</Text>
+            <Text style={styles.messageTitle}>💬 AI Assistant:</Text>
             <Text style={styles.messageText}>{responseData.message}</Text>
           </View>
 
-          {/* Hiển thị danh sách sản phẩm được gợi ý */}
+          {/* Display recommended products */}
           {responseData.products && responseData.products.length > 0 && (
             <View style={styles.productsContainer}>
               <Text style={styles.productsTitle}>
-                🛍️ Sản phẩm gợi ý ({responseData.products.length}):
+                🛍️ Recommended Products ({responseData.products.length}):
               </Text>
               {responseData.products.map((product, index) => (
                 <TouchableOpacity
@@ -213,7 +217,7 @@ export default function ProductChatbot({ navigation }) {
                     navigation.navigate("ProductDetail", { id: product.id });
                   }}
                   style={styles.productTouchable}
-                  activeOpacity={0.7} // Thêm hiệu ứng visual
+                  activeOpacity={0.7} // Add visual effect
                 >
                   <ProductCard product={product} />
                 </TouchableOpacity>
