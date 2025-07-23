@@ -17,11 +17,17 @@ import * as yup from "yup";
 import useFormValidation from "../hook/useFormValidation";
 import FormError from "../components/common/FormError";
 
+// Enhanced validation schema with phone number validation
 const addressSchema = yup.object().shape({
   address: yup.string().required("Address is required"),
   city: yup.string().required("City is required"),
   country: yup.string().required("Country is required"),
-  phone: yup.string().required("Phone number is required"),
+  phone: yup
+    .string()
+    .required("Phone number is required")
+    .matches(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number")
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number must not exceed 15 digits"),
 });
 
 export default function AdressManagingScreen({ navigation, route }) {
@@ -29,6 +35,24 @@ export default function AdressManagingScreen({ navigation, route }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Custom phone number formatter
+  const formatPhoneNumber = (value) => {
+    // Remove all non-numeric characters except +
+    const cleaned = value.replace(/[^\d+]/g, "");
+
+    // Don't allow multiple + signs
+    if (cleaned.indexOf("+") !== cleaned.lastIndexOf("+")) {
+      return cleaned.substring(0, cleaned.lastIndexOf("+"));
+    }
+
+    // Ensure + is only at the beginning
+    if (cleaned.includes("+") && cleaned.indexOf("+") !== 0) {
+      return cleaned.replace(/\+/g, "");
+    }
+
+    return cleaned;
+  };
 
   const form = useFormValidation(
     { address: "", city: "", country: "Vietnam", phone: "" },
@@ -67,6 +91,12 @@ export default function AdressManagingScreen({ navigation, route }) {
     }
   );
 
+  // Custom phone change handler
+  const handlePhoneChange = (text) => {
+    const formatted = formatPhoneNumber(text);
+    form.handleChange("phone", formatted);
+  };
+
   useEffect(() => {
     const loadAddresses = async () => {
       try {
@@ -104,7 +134,7 @@ export default function AdressManagingScreen({ navigation, route }) {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            const updated = addresses.filter((_, i) => i !== idx);
+            const updated = addresses.filter((_, i) => i !== idx); //dup the address array without the address in the idx
             await AsyncStorage.setItem(
               "userAddresses",
               JSON.stringify(updated)
@@ -289,15 +319,48 @@ export default function AdressManagingScreen({ navigation, route }) {
                 {isEditMode ? "Edit Address" : "Add Address"}
               </Text>
 
-              <TextInput
-                placeholder="Phone Number"
-                value={form.values.phone}
-                onChangeText={(text) => form.handleChange("phone", text)}
-                style={[AdressManagingScreenStyles.input, { width: "100%" }]}
-                onBlur={() => form.validate()}
-                keyboardType="phone-pad"
-              />
-              <FormError error={form.errors.phone} />
+              {/* Enhanced Phone Input */}
+              <View style={{ marginBottom: 16 }}>
+                <View
+                  style={[
+                    AdressManagingScreenStyles.input,
+                    {
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingHorizontal: 12,
+                    },
+                  ]}
+                >
+                  <FontAwesome
+                    name="phone"
+                    size={16}
+                    color="#666"
+                    style={{ marginRight: 8 }}
+                  />
+                  <TextInput
+                    placeholder="Phone Number (e.g., +1234567890)"
+                    value={form.values.phone}
+                    onChangeText={handlePhoneChange}
+                    style={{ flex: 1, fontSize: 16 }}
+                    onBlur={() => form.validate()}
+                    keyboardType="phone-pad"
+                    autoCompleteType="tel"
+                  />
+                </View>
+                <FormError error={form.errors.phone} />
+                {form.values.phone && !form.errors.phone && (
+                  <Text
+                    style={{
+                      color: "#28a745",
+                      fontSize: 12,
+                      marginTop: 4,
+                      marginLeft: 12,
+                    }}
+                  >
+                    ✓ Valid phone number
+                  </Text>
+                )}
+              </View>
 
               <TextInput
                 placeholder="Address"

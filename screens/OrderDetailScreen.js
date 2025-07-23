@@ -5,7 +5,6 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Image,
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
@@ -13,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { getOrderById } from "../api/orders";
 import { colors } from "../styles/GlobalStyles";
+import OptimizedImage from "../components/OptimizedImage"; // Add this import
 
 const OrderDetailScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
@@ -156,7 +156,14 @@ const OrderDetailScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Order Items</Text>
           {order.orderItems.map((item, index) => (
             <View key={item._id || index} style={styles.itemCard}>
-              <Image source={{ uri: item.image }} style={styles.itemImage} />
+              <OptimizedImage
+                source={{ uri: item.image }}
+                style={styles.itemImage}
+                width={80}
+                height={80}
+                quality="70"
+                fallbackText="📦"
+              />
               <View style={styles.itemDetails}>
                 <Text style={styles.itemName} numberOfLines={2}>
                   {item.name}
